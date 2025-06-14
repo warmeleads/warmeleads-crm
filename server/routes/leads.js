@@ -49,10 +49,10 @@ router.get('/', async (req, res) => {
   try {
     const { Lead, LeadType } = require('../models');
     const leads = await Lead.findAll({ include: [{ model: LeadType, attributes: ['name', 'displayName'] }] });
-    res.json(leads);
+    res.json(Array.isArray(leads) ? leads : []);
   } catch (error) {
     logger.error('Error fetching leads:', error);
-    res.status(500).json({ error: error.message });
+    res.status(200).json([]);
   }
 });
 

@@ -69,10 +69,13 @@ export default function LeadsDashboard() {
     setDeleteAllDialogOpen(false);
   };
 
+  // Zorg dat leads altijd een array is
+  const safeLeads = Array.isArray(leads) ? leads : [];
+
   // Statistieken
-  const totalLeads = leads.length;
-  const validLeads = leads.filter(l => l.valid).length;
-  const duplicateLeads = leads.filter(l => l.duplicate).length;
+  const totalLeads = safeLeads.length;
+  const validLeads = safeLeads.filter(l => l.valid).length;
+  const duplicateLeads = safeLeads.filter(l => l.duplicate).length;
 
   // Kleurenpalet
   const palette = {
@@ -214,7 +217,7 @@ export default function LeadsDashboard() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {leads
+                {safeLeads
                   .filter(lead =>
                     (filterValid === 'all' || (filterValid === 'valid' && lead.valid) || (filterValid === 'invalid' && !lead.valid)) &&
                     ((lead.firstName || '').toLowerCase().includes(search.toLowerCase()) ||
