@@ -656,6 +656,9 @@ class LeadDistributionService {
         if (!leadData.country) leadData.country = 'Nederland';
         if (!leadData.latitude) leadData.latitude = 0;
         if (!leadData.longitude) leadData.longitude = 0;
+        if (!leadData.firstName) leadData.firstName = 'Onbekend';
+        if (!leadData.lastName) leadData.lastName = 'Onbekend';
+        if (!leadData.city) leadData.city = 'Onbekend';
         // Validatie: telefoonnummer NL/BE
         leadData.phoneValid = /^((\+31|0)[1-9][0-9]{8})$|^(\+32|0)[1-9][0-9]{7,8}$/.test(leadData.phone || '');
         // Validatie: e-mail
