@@ -115,10 +115,17 @@ async function startServer() {
     if (process.env.MIGRATE_ON_START === 'true') {
       try {
         console.log('==> Voer database migraties uit...');
-        execSync('npx sequelize-cli db:migrate --env production --config config/config.json', { stdio: 'inherit' });
-        console.log('==> Migraties voltooid!');
+        try {
+          const output = execSync('npx sequelize-cli db:migrate --env production --config config/config.json', { encoding: 'utf-8' });
+          console.log('==> Migratie output:', output);
+          console.log('==> Migraties voltooid!');
+        } catch (err) {
+          console.error('==> Migratie-fout:', err.message);
+          if (err.stdout) console.error('==> STDOUT:', err.stdout.toString());
+          if (err.stderr) console.error('==> STDERR:', err.stderr.toString());
+        }
       } catch (err) {
-        console.error('==> Migratie-fout:', err);
+        console.error('==> Migratie-fout buiten:', err);
       }
     }
     // Test database connection (optional for now)
