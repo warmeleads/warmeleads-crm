@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const { sequelize } = require('./models');
 const logger = require('./utils/logger');
+const GoogleSheetsService = require('./services/GoogleSheetsService');
 
 // Global variable to track database availability
 global.dbAvailable = false;
@@ -110,6 +111,8 @@ async function startServer() {
       console.log('⚠️  Database connectie mislukt, server start zonder database');
       global.dbAvailable = false;
     }
+    
+    new GoogleSheetsService();
     
     const server = app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
