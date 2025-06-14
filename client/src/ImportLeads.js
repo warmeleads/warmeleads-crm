@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Button, Typography, TextField, Select, MenuItem, Checkbox, List, ListItem, ListItemText, ListItemIcon, FormControl, InputLabel, CircularProgress, Alert } from '@mui/material';
 
+const API_BASE = process.env.REACT_APP_API_URL || 'https://warmeleads-crm.onrender.com';
+
 const BRANCHES = [
   { value: '', label: 'Alle branches' },
   { value: 'Thuisbatterij', label: 'Thuisbatterij' },
@@ -38,7 +40,7 @@ function ImportLeads() {
     const id = extractSheetId(sheetUrl);
     setSheetId(id);
     try {
-      const res = await fetch(`/api/settings/sheet-columns?sheetId=${id}`);
+      const res = await fetch(`${API_BASE}/api/settings/sheet-columns?sheetId=${id}`);
       if (!res.ok) throw new Error('Kan tabbladen niet ophalen');
       const data = await res.json();
       setTabs(data.sheetTabs || []);
@@ -76,7 +78,7 @@ function ImportLeads() {
     setImportResult(null);
     setError('');
     try {
-      const res = await fetch('/api/settings/import-sheet-leads', {
+      const res = await fetch(`${API_BASE}/api/settings/import-sheet-leads`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
