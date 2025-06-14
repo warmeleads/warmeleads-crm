@@ -5,23 +5,25 @@ const path = require('path');
 
 class GoogleSheetsService {
   constructor() {
-    // Load service account credentials from file or environment variable
-    const keyFile = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE || path.join(__dirname, '../../google-service-account.json');
-    let credentials;
-    if (fs.existsSync(keyFile)) {
-      credentials = JSON.parse(fs.readFileSync(keyFile, 'utf8'));
-    } else if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
-      credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    // Laad service account credentials UITSLUITEND uit environment variable
+    if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+      try {
+        this.credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+      } catch (e) {
+        logger.error('GOOGLE_SERVICE_ACCOUNT_JSON is geen geldige JSON!');
+        this.sheets = null;
+        return;
+      }
     } else {
-      logger.warn('No Google service account credentials found. Google Sheets integration will not work.');
+      logger.warn('Geen GOOGLE_SERVICE_ACCOUNT_JSON gevonden. Google Sheets integratie werkt niet.');
       this.sheets = null;
       return;
     }
 
     this.jwtClient = new google.auth.JWT(
-      credentials.client_email,
+      this.credentials.client_email,
       null,
-      credentials.private_key,
+      this.credentials.private_key,
       ['https://www.googleapis.com/auth/spreadsheets']
     );
     this.sheets = google.sheets({ version: 'v4', auth: this.jwtClient });
