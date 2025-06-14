@@ -136,6 +136,15 @@ async function startServer() {
           });
           console.log('==> Migratie output:', output);
           console.log('==> Migraties voltooid!');
+          // Na migraties: seeders uitvoeren
+          try {
+            const seedOutput = execSync('node scripts/seed.js', { encoding: 'utf-8' });
+            console.log('==> Seeder script output:', seedOutput);
+          } catch (seedErr) {
+            console.error('==> Seeder script fout:', seedErr.message);
+            if (seedErr.stdout) console.error('==> Seeder STDOUT:', seedErr.stdout.toString());
+            if (seedErr.stderr) console.error('==> Seeder STDERR:', seedErr.stderr.toString());
+          }
         } catch (err) {
           console.error('==> Migratie-fout:', err.message);
           if (err.stdout) console.error('==> STDOUT:', err.stdout.toString());
