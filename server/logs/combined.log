@@ -227,3 +227,6 @@
 {"level":"info","message":"Database connection established successfully.","service":"warmeleads-api","timestamp":"2025-06-13 00:54:47"}
 {"level":"info","message":"Database connection established successfully.","service":"warmeleads-api","timestamp":"2025-06-14 15:27:43"}
 {"level":"info","message":"Server running on port 5000","service":"warmeleads-api","timestamp":"2025-06-14 15:27:43"}
+{"level":"info","message":"Database connection established successfully.","service":"warmeleads-api","timestamp":"2025-06-14 15:50:21"}
+{"level":"info","message":"Server running on port 5000","service":"warmeleads-api","timestamp":"2025-06-14 15:50:21"}
+{"level":"info","message":"Database connection established successfully.","service":"warmeleads-api","timestamp":"2025-06-14 15:50:36"}
