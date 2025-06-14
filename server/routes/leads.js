@@ -44,4 +44,42 @@ router.get('/facebook-webhook', (req, res) => {
   }
 });
 
+// Haal alle leads op
+router.get('/', async (req, res) => {
+  try {
+    const { Lead, LeadType } = require('../models');
+    const leads = await Lead.findAll({ include: [{ model: LeadType, attributes: ['name', 'displayName'] }] });
+    res.json(leads);
+  } catch (error) {
+    logger.error('Error fetching leads:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Verwijder één lead
+router.delete('/:id', async (req, res) => {
+  try {
+    const { Lead } = require('../models');
+    const lead = await Lead.findByPk(req.params.id);
+    if (!lead) return res.status(404).json({ error: 'Lead niet gevonden' });
+    await lead.destroy();
+    res.json({ success: true });
+  } catch (error) {
+    logger.error('Error deleting lead:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Verwijder alle leads
+router.delete('/', async (req, res) => {
+  try {
+    const { Lead } = require('../models');
+    await Lead.destroy({ where: {} });
+    res.json({ success: true });
+  } catch (error) {
+    logger.error('Error deleting all leads:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router; 

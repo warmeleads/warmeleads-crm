@@ -1,39 +1,15 @@
 import React from 'react';
 import {
-  Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, InputAdornment, IconButton, Button, Chip, Avatar, Grid, Card, CardContent, Fade, Drawer, Divider
+  Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, InputAdornment, IconButton, Button, Chip, Avatar, Grid, Card, CardContent, Fade, Drawer, Divider, Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import GroupIcon from '@mui/icons-material/Group';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import DeleteIcon from '@mui/icons-material/Delete';
 
-const mockLeads = [
-  {
-    id: '1',
-    name: 'Jan Jansen',
-    email: 'jan@email.com',
-    phone: '0612345678',
-    location: 'Rotterdam',
-    branche: 'Zonnepanelen',
-    valid: true,
-    duplicate: false,
-    createdAt: '2025-06-12',
-    notes: 'Lead via Facebook campagne. Wil snel contact.'
-  },
-  {
-    id: '2',
-    name: 'Piet Pietersen',
-    email: 'piet@email.com',
-    phone: '0687654321',
-    location: 'Amsterdam',
-    branche: 'Thuisbatterij',
-    valid: false,
-    duplicate: true,
-    createdAt: '2025-06-11',
-    notes: 'Dubbele lead, check validatie.'
-  },
-];
+const API_BASE = process.env.REACT_APP_API_URL || 'https://warmeleads-crm.onrender.com';
 
 function stringToColor(string) {
   let hash = 0;
@@ -64,9 +40,34 @@ function stringAvatar(name) {
 export default function LeadsDashboard() {
   const [search, setSearch] = React.useState('');
   const [filterValid, setFilterValid] = React.useState('all');
-  const [leads] = React.useState(mockLeads);
+  const [leads, setLeads] = React.useState([]);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [selectedLead, setSelectedLead] = React.useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = React.useState(false);
+  const [leadToDelete, setLeadToDelete] = React.useState(null);
+
+  React.useEffect(() => {
+    fetchLeads();
+  }, []);
+
+  const fetchLeads = async () => {
+    const res = await fetch(`${API_BASE}/api/leads`);
+    const data = await res.json();
+    setLeads(data);
+  };
+
+  const handleDeleteLead = async (id) => {
+    await fetch(`${API_BASE}/api/leads/${id}`, { method: 'DELETE' });
+    fetchLeads();
+    setDeleteDialogOpen(false);
+  };
+
+  const handleDeleteAllLeads = async () => {
+    await fetch(`${API_BASE}/api/leads`, { method: 'DELETE' });
+    fetchLeads();
+    setDeleteAllDialogOpen(false);
+  };
 
   // Statistieken
   const totalLeads = leads.length;
@@ -142,6 +143,15 @@ export default function LeadsDashboard() {
         </Grid>
       </Grid>
 
+      <Button
+        variant="outlined"
+        color="error"
+        sx={{ mb: 2, fontWeight: 700 }}
+        onClick={() => setDeleteAllDialogOpen(true)}
+      >
+        Verwijder alle leads
+      </Button>
+
       {/* Filterbalk */}
       <Paper elevation={0} sx={{ mb: 4, p: { xs: 1, md: 2 }, display: 'flex', alignItems: 'center', gap: 2, borderRadius: 4, background: '#fff', boxShadow: '0 2px 16px 0 #6366f11a' }}>
         <TextField
@@ -207,9 +217,9 @@ export default function LeadsDashboard() {
                 {leads
                   .filter(lead =>
                     (filterValid === 'all' || (filterValid === 'valid' && lead.valid) || (filterValid === 'invalid' && !lead.valid)) &&
-                    (lead.name.toLowerCase().includes(search.toLowerCase()) ||
-                      lead.email.toLowerCase().includes(search.toLowerCase()) ||
-                      lead.location.toLowerCase().includes(search.toLowerCase()))
+                    ((lead.firstName || '').toLowerCase().includes(search.toLowerCase()) ||
+                      (lead.email || '').toLowerCase().includes(search.toLowerCase()) ||
+                      (lead.city || '').toLowerCase().includes(search.toLowerCase()))
                   )
                   .map(lead => (
                     <TableRow key={lead.id} hover sx={{ cursor: 'pointer', transition: 'background 0.2s', '&:hover': { background: '#e0e7ff' } }} onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
@@ -236,6 +246,9 @@ export default function LeadsDashboard() {
                         </IconButton>
                         <IconButton color="info" size="small" title="Details" onClick={e => { e.stopPropagation(); setSelectedLead(lead); setDrawerOpen(true); }}>
                           <InfoOutlinedIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton color="error" size="small" title="Verwijder lead" onClick={e => { e.stopPropagation(); setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
+                          <DeleteIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
                     </TableRow>
@@ -269,6 +282,26 @@ export default function LeadsDashboard() {
           </Box>
         )}
       </Drawer>
+
+      {/* Verwijder lead dialoog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Lead verwijderen</DialogTitle>
+        <DialogContent>Weet je zeker dat je deze lead wilt verwijderen?</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Annuleren</Button>
+          <Button color="error" onClick={() => handleDeleteLead(leadToDelete.id)}>Verwijderen</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Verwijder alle leads dialoog */}
+      <Dialog open={deleteAllDialogOpen} onClose={() => setDeleteAllDialogOpen(false)}>
+        <DialogTitle>Alle leads verwijderen</DialogTitle>
+        <DialogContent>Weet je zeker dat je <b>alle</b> leads wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.</DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteAllDialogOpen(false)}>Annuleren</Button>
+          <Button color="error" onClick={handleDeleteAllLeads}>Alles verwijderen</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 } 
