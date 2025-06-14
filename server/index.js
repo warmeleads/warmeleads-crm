@@ -115,7 +115,7 @@ async function startServer() {
     if (process.env.MIGRATE_ON_START === 'true') {
       try {
         console.log('==> Voer database migraties uit...');
-        execSync('npx sequelize-cli db:migrate --env production --config server/config/config.json', { stdio: 'inherit' });
+        execSync('npx sequelize-cli db:migrate --env production --config config/config.json', { stdio: 'inherit' });
         console.log('==> Migraties voltooid!');
       } catch (err) {
         console.error('==> Migratie-fout:', err);
