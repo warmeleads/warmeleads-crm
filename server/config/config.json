@@ -1,0 +1,14 @@
+{
+  "development": {
+    "url": "postgresql://localhost:5432/warmeleads",
+    "dialect": "postgres"
+  },
+  "test": {
+    "url": "postgresql://localhost:5432/warmeleads_test",
+    "dialect": "postgres"
+  },
+  "production": {
+    "url": "postgresql://localhost:5432/warmeleads",
+    "dialect": "postgres"
+  }
+} 
