@@ -598,9 +598,9 @@ class LeadDistributionService {
 
   /**
    * Importeer leads uit geselecteerde tabbladen en optioneel filter op branche
-   * @param {Object} opts - { sheetId, tabNames, branch }
+   * @param {Object} opts - { sheetId, tabNames, branch, mapping }
    */
-  async importLeadsFromSelectedTabs({ sheetId, tabNames, branch }) {
+  async importLeadsFromSelectedTabs({ sheetId, tabNames, branch, mapping }) {
     if (!sheetId || !tabNames || !Array.isArray(tabNames) || tabNames.length === 0) {
       throw new Error('sheetId en tabNames zijn verplicht');
     }
@@ -628,12 +628,22 @@ class LeadDistributionService {
         // Check of deze lead al bestaat
         const existing = await Lead.findOne({ where: { facebookLeadId } });
         if (existing) continue;
-        // Mapping per branche
-        const mapping = leadMappings[sheetBranche] || {};
-        const leadData = {};
-        Object.keys(mapping).forEach(field => {
-          leadData[field] = mapping[field](row);
-        });
+        // Mapping per tabblad: gebruik mapping uit argument als aanwezig, anders standaard mapping
+        let leadData = {};
+        if (mapping && mapping[tabName]) {
+          // mapping[tabName] is een object: { sheetKolom: { enabled, mappedTo } }
+          Object.entries(mapping[tabName]).forEach(([sheetCol, mapObj]) => {
+            if (mapObj.enabled && mapObj.mappedTo) {
+              leadData[mapObj.mappedTo] = row[sheetCol];
+            }
+          });
+        } else {
+          // Mapping per branche (fallback)
+          const brancheMapping = leadMappings[sheetBranche] || {};
+          Object.keys(brancheMapping).forEach(field => {
+            leadData[field] = brancheMapping[field](row);
+          });
+        }
         // Mapping & defaults voor verplichte velden
         leadData.facebookLeadId = facebookLeadId;
         leadData.facebookAdId = row['Facebook Ad ID'] || 'unknown';

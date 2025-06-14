@@ -61,8 +61,8 @@ router.post('/sheet', (req, res) => {
 // POST: Importeer nieuwe leads uit Google Sheet
 router.post('/import-sheet-leads', async (req, res) => {
   try {
-    const { sheetId, tabNames, branch } = req.body;
-    const imported = await leadDistributionService.importLeadsFromSelectedTabs({ sheetId, tabNames, branch });
+    const { sheetId, tabNames, branch, mapping } = req.body;
+    const imported = await leadDistributionService.importLeadsFromSelectedTabs({ sheetId, tabNames, branch, mapping });
     res.json({ success: true, imported });
   } catch (error) {
     logger.error('Error importing leads from sheet:', error);
