@@ -13,7 +13,47 @@ module.exports = {
         allowNull: false,
         unique: true
       },
+      displayName: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
       description: {
+        type: Sequelize.TEXT
+      },
+      category: {
+        type: Sequelize.ENUM('energy', 'heating', 'cooling', 'storage', 'other'),
+        allowNull: false
+      },
+      averageCost: {
+        type: Sequelize.DECIMAL(8, 2),
+        allowNull: false,
+        defaultValue: 0
+      },
+      conversionRate: {
+        type: Sequelize.DECIMAL(5, 4),
+        allowNull: false,
+        defaultValue: 0.05
+      },
+      averageValue: {
+        type: Sequelize.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0
+      },
+      isActive: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: true
+      },
+      priority: {
+        type: Sequelize.INTEGER,
+        defaultValue: 1
+      },
+      targetKeywords: {
+        type: Sequelize.JSON
+      },
+      facebookFormId: {
+        type: Sequelize.STRING
+      },
+      googleSheetTemplate: {
         type: Sequelize.STRING
       },
       createdAt: {
