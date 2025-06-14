@@ -11,6 +11,7 @@ const logger = require('../utils/logger');
 const GoogleSheetsService = require('./GoogleSheetsService');
 const fs = require('fs');
 const path = require('path');
+const leadMappings = require('../lead-mapping');
 
 class LeadDistributionService {
   constructor() {
@@ -603,18 +604,6 @@ class LeadDistributionService {
     if (!sheetId || !tabNames || !Array.isArray(tabNames) || tabNames.length === 0) {
       throw new Error('sheetId en tabNames zijn verplicht');
     }
-    // Mapping per branche
-    const brancheMappings = {
-      'Thuisbatterij': [
-        'Naam klant', 'Datum interesse klant', 'Postcode', 'Huisnummer', 'plaatsnaam', 'Telefoonnummer', 'E-mail', 'Zonnepanelen', 'Dynamisch contract', 'Stroomverbruik', 'Budget', 'Reden Thuisbatterij?'
-      ],
-      'Airco': [
-        'Naam klant', 'Datum interesse klant', 'Postcode', 'Huisnummer', 'Plaatsnaam', 'Telefoonnummer', 'E-mail', 'Type airco', 'Koelen/verwarmen?', 'Hoeveel ruimtes?', 'Zakelijk?', 'Koop of huur?', 'Boorwerkzaamheden toegestaan?'
-      ],
-      'GZ Accu': [
-        'Naam klant', 'Datum', 'Postcode', 'Huisnummer', 'plaatsnaam', 'Telefoonnummer', 'E-mail', 'Meer dan 75.000 kWh per jaar?', 'Zonnepanelen?', 'Hoeveel kWh opwekking?', 'Reden Accu'
-      ]
-    };
     let totaalGeimporteerd = 0;
     for (const tabName of tabNames) {
       // Metadata uit tabbladnaam
@@ -627,37 +616,36 @@ class LeadDistributionService {
       if (!rows || rows.length < 2) continue;
       const header = rows[0];
       const dataRows = rows.slice(1);
-      for (const row of dataRows) {
+      for (const rowArr of dataRows) {
+        // Maak een row-object van header/rowArr
+        const row = {};
+        header.forEach((col, i) => { row[col] = rowArr[i]; });
         // Uniek ID: e-mail + telefoon + evt. datum
         const emailIdx = header.findIndex(h => h.toLowerCase().includes('email'));
         const phoneIdx = header.findIndex(h => h.toLowerCase().includes('phone'));
         const dateIdx = header.findIndex(h => h.toLowerCase().includes('date'));
-        const facebookLeadId = (row[dateIdx] || '') + (row[emailIdx] || '') + (row[phoneIdx] || '');
+        const facebookLeadId = (rowArr[dateIdx] || '') + (rowArr[emailIdx] || '') + (rowArr[phoneIdx] || '');
         // Check of deze lead al bestaat
         const existing = await Lead.findOne({ where: { facebookLeadId } });
         if (existing) continue;
-        // Mapping van sheet naar Lead-model
+        // Mapping per branche
+        const mapping = leadMappings[sheetBranche] || {};
         const leadData = {};
-        header.forEach((col, i) => { leadData[col] = row[i]; });
+        Object.keys(mapping).forEach(field => {
+          leadData[field] = mapping[field](row);
+        });
         // Mapping & defaults voor verplichte velden
         leadData.facebookLeadId = facebookLeadId;
-        leadData.facebookAdId = leadData['Facebook Ad ID'] || 'unknown';
-        leadData.facebookCampaignId = leadData['Facebook Campaign ID'] || 'unknown';
-        leadData.firstName = leadData['Voornaam'] || leadData['Naam klant'] || leadData['naam'] || 'unknown';
-        leadData.lastName = leadData['Achternaam'] || leadData['leadnaam'] || 'unknown';
-        leadData.city = leadData['Plaatsnaam'] || leadData['plaats'] || 'unknown';
-        leadData.country = (leadData['land'] || 'Netherlands');
-        leadData.latitude = parseFloat(leadData['latitude'] || 0);
-        leadData.longitude = parseFloat(leadData['longitude'] || 0);
-        // Sheet metadata
+        leadData.facebookAdId = row['Facebook Ad ID'] || 'unknown';
+        leadData.facebookCampaignId = row['Facebook Campaign ID'] || 'unknown';
         leadData.sheetTabName = tabName;
         leadData.sheetCustomerName = sheetCustomerName;
         leadData.sheetBranche = sheetBranche;
         leadData.sheetLocation = sheetLocation;
         // Validatie: telefoonnummer NL/BE
-        leadData.phoneValid = /^((\+31|0)[1-9][0-9]{8})$|^(\+32|0)[1-9][0-9]{7,8}$/.test(leadData['Telefoonnummer'] || leadData['Telefoon'] || '');
+        leadData.phoneValid = /^((\+31|0)[1-9][0-9]{8})$|^(\+32|0)[1-9][0-9]{7,8}$/.test(leadData.phone || '');
         // Validatie: e-mail
-        leadData.emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(leadData['E-mail'] || leadData['Email'] || '');
+        leadData.emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(leadData.email || '');
         // Verdeel lead
         await this.distributeLead(leadData);
         totaalGeimporteerd++;
