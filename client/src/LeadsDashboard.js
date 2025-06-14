@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, InputAdornment, IconButton, Button, Chip, Avatar, Grid, Card, CardContent, Fade, Drawer, Divider, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab
+  Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, InputAdornment, IconButton, Button, Chip, Avatar, Grid, Card, CardContent, Fade, Drawer, Divider, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Switch, FormControlLabel
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -98,6 +98,7 @@ export default function LeadsDashboard() {
   const [deleteAllDialogOpen, setDeleteAllDialogOpen] = React.useState(false);
   const [leadToDelete, setLeadToDelete] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState(0);
+  const [debugMode, setDebugMode] = React.useState(false);
 
   React.useEffect(() => {
     fetchLeads();
@@ -261,11 +262,41 @@ export default function LeadsDashboard() {
         </IconButton>
       </Paper>
 
-      <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ mb: 4 }}>
-        {LEAD_TYPES.map((type, idx) => (
-          <Tab key={type} label={type + ' Leads'} />
-        ))}
-      </Tabs>
+      <FormControlLabel
+        control={<Switch checked={debugMode} onChange={e => setDebugMode(e.target.checked)} color="primary" />}
+        label="Debug modus: alle ruwe leads tonen"
+        sx={{ mb: 2 }}
+      />
+      {debugMode ? (
+        <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'auto', mb: 6 }}>
+          <TableContainer>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  {Object.keys(safeLeads[0] || {}).map(key => (
+                    <TableCell key={key} sx={{ fontWeight: 700 }}>{key}</TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {safeLeads.map(lead => (
+                  <TableRow key={lead.id}>
+                    {Object.keys(safeLeads[0] || {}).map(key => (
+                      <TableCell key={key}>{String(lead[key] ?? '')}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Paper>
+      ) : (
+        <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ mb: 4 }}>
+          {LEAD_TYPES.map((type, idx) => (
+            <Tab key={type} label={type + ' Leads'} />
+          ))}
+        </Tabs>
+      )}
 
       {/* Waarschuwing als er onbekende leads zijn */}
       {groupedLeads.Overige.length > 0 && (

@@ -652,6 +652,12 @@ class LeadDistributionService {
         leadData.sheetCustomerName = sheetCustomerName;
         leadData.sheetBranche = sheetBranche;
         leadData.sheetLocation = sheetLocation;
+        // Extra validatie: sheetBranche leeg of onbekend
+        const brancheNorm = (sheetBranche || '').toLowerCase();
+        if (!brancheNorm || (!brancheNorm.includes('thuisbatterij') && !brancheNorm.includes('airco') && !brancheNorm.includes('gz accu'))) {
+          logger.warn(`Onbekende of lege branche in tabbladnaam: ${tabName}`);
+          leadData.importWarning = `Onbekende of lege branche in tabbladnaam: ${tabName}`;
+        }
         // Verplichte velden fallback
         if (!leadData.country) leadData.country = 'Netherlands';
         if (!leadData.latitude) leadData.latitude = 0;
