@@ -2,9 +2,8 @@
 
 module.exports = {
   async up (queryInterface, Sequelize) {
-    await queryInterface.bulkInsert('lead_types', [
+    const leadTypes = [
       {
-        id: Sequelize.literal('gen_random_uuid()'),
         name: 'thuisbatterij',
         displayName: 'Thuisbatterij',
         description: 'Leads voor thuisbatterijen',
@@ -16,12 +15,9 @@ module.exports = {
         priority: 1,
         targetKeywords: JSON.stringify(['batterij', 'thuisbatterij', 'accu', 'opslag']),
         facebookFormId: null,
-        googleSheetTemplate: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        googleSheetTemplate: null
       },
       {
-        id: Sequelize.literal('gen_random_uuid()'),
         name: 'zonnepanelen',
         displayName: 'Zonnepanelen',
         description: 'Leads voor zonnepanelen',
@@ -33,12 +29,9 @@ module.exports = {
         priority: 2,
         targetKeywords: JSON.stringify(['zonnepaneel', 'zonnepanelen', 'pv']),
         facebookFormId: null,
-        googleSheetTemplate: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        googleSheetTemplate: null
       },
       {
-        id: Sequelize.literal('gen_random_uuid()'),
         name: 'airco',
         displayName: 'Airco',
         description: 'Leads voor airconditioning',
@@ -50,14 +43,30 @@ module.exports = {
         priority: 3,
         targetKeywords: JSON.stringify(['airco', 'koelen', 'airconditioning']),
         facebookFormId: null,
-        googleSheetTemplate: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        googleSheetTemplate: null
       }
-    ]);
+    ];
+
+    for (const leadType of leadTypes) {
+      // Check of deze leadType al bestaat
+      const [existing] = await queryInterface.sequelize.query(
+        'SELECT id FROM lead_types WHERE name = :name',
+        { replacements: { name: leadType.name }, type: Sequelize.QueryTypes.SELECT }
+      );
+      if (!existing) {
+        await queryInterface.bulkInsert('lead_types', [{
+          ...leadType,
+          id: Sequelize.literal('gen_random_uuid()'),
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }]);
+      }
+    }
   },
 
   async down (queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('lead_types', null, {});
+    await queryInterface.bulkDelete('lead_types', {
+      name: ['thuisbatterij', 'zonnepanelen', 'airco']
+    }, {});
   }
 }; 
