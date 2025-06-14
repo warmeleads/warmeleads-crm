@@ -1,6 +1,8 @@
 import React from 'react';
 import { Box, Typography, Paper, TextField, Button, Card, CardContent, Checkbox, FormControlLabel, MenuItem, Select, Chip, CircularProgress, Fade, Stack } from '@mui/material';
 
+const API_BASE = process.env.REACT_APP_API_URL || 'https://warmeleads-crm.onrender.com';
+
 const leadFields = [
   { value: 'firstName', label: 'Voornaam' },
   { value: 'lastName', label: 'Achternaam' },
@@ -33,7 +35,7 @@ export default function Settings() {
   const [log, setLog] = React.useState('');
 
   React.useEffect(() => {
-    fetch('/api/settings/sheet')
+    fetch(`${API_BASE}/api/settings/sheet`)
       .then(res => res.json())
       .then(data => setSheetUrl(data.sheetUrl || ''));
   }, []);
@@ -41,7 +43,7 @@ export default function Settings() {
   const handleSave = async (e) => {
     e.preventDefault();
     setSaved(false);
-    await fetch('/api/settings/sheet', {
+    await fetch(`${API_BASE}/api/settings/sheet`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sheetUrl })
@@ -58,7 +60,7 @@ export default function Settings() {
     setWizardActive(false);
     setResults([]);
     try {
-      const res = await fetch('/api/settings/sheet-columns');
+      const res = await fetch(`${API_BASE}/api/settings/sheet-columns`);
       setLog(l => l + `\n[${new Date().toLocaleTimeString()}] HTTP status: ${res.status}`);
       if (!res.ok) {
         let errText = '';
