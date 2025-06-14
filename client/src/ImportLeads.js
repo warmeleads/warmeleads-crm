@@ -31,6 +31,55 @@ const leadFields = [
   { value: 'facebookLeadId', label: 'Facebook Lead ID' },
 ];
 
+// Branch-specifieke mappingvelden
+const branchLeadFields = {
+  Thuisbatterij: [
+    { value: 'naamKlant', label: 'Naam klant' },
+    { value: 'datumInteresse', label: 'Datum interesse klant' },
+    { value: 'postcode', label: 'Postcode' },
+    { value: 'plaatsnaam', label: 'Plaatsnaam' },
+    { value: 'telefoonnummer', label: 'Telefoonnummer' },
+    { value: 'email', label: 'E-mail' },
+    { value: 'zonnepanelen', label: 'Zonnepanelen' },
+    { value: 'dynamischContract', label: 'Dynamisch contract' },
+    { value: 'stroomverbruik', label: 'Stroomverbruik' },
+    { value: 'budget', label: 'Budget' },
+    { value: 'redenThuisbatterij', label: 'Reden Thuisbatterij' },
+  ],
+  Airco: [
+    { value: 'naamKlant', label: 'Naam klant' },
+    { value: 'datumInteresse', label: 'Datum interesse klant' },
+    { value: 'postcode', label: 'Postcode' },
+    { value: 'huisnummer', label: 'Huisnummer' },
+    { value: 'plaatsnaam', label: 'Plaatsnaam' },
+    { value: 'telefoonnummer', label: 'Telefoonnummer' },
+    { value: 'email', label: 'E-mail' },
+    { value: 'typeAirco', label: 'Type airco' },
+    { value: 'koelenVerwarmen', label: 'Koelen/verwarmen?' },
+    { value: 'hoeveelRuimtes', label: 'Hoeveel ruimtes?' },
+    { value: 'zakelijk', label: 'Zakelijk?' },
+    { value: 'koopOfHuur', label: 'Koop of huur?' },
+    { value: 'boorwerkzaamheden', label: 'Boorwerkzaamheden toegestaan?' },
+  ],
+  'GZ Accu': [
+    { value: 'naamKlant', label: 'Naam klant' },
+    { value: 'datum', label: 'Datum' },
+    { value: 'postcode', label: 'Postcode' },
+    { value: 'huisnummer', label: 'Huisnummer' },
+    { value: 'plaatsnaam', label: 'Plaatsnaam' },
+    { value: 'afstand', label: 'Afstand' },
+    { value: 'binnenGebied', label: 'Binnen gebied?' },
+    { value: 'verwerkt', label: 'Verwerkt?' },
+    { value: 'geexporteerd', label: 'Geexporteerd?' },
+    { value: 'telefoonnummer', label: 'Telefoonnummer' },
+    { value: 'email', label: 'E-mail' },
+    { value: 'meerDan75000', label: 'Meer dan 75.000 kWh per jaar?' },
+    { value: 'zonnepanelen', label: 'Zonnepanelen?' },
+    { value: 'hoeveelKwh', label: 'Hoeveel kWh opwekking?' },
+    { value: 'redenAccu', label: 'Reden Accu' },
+  ]
+};
+
 function ImportLeads() {
   const [step, setStep] = useState(1);
   const [sheetUrl, setSheetUrl] = useState('');
@@ -149,6 +198,15 @@ function ImportLeads() {
     }
   };
 
+  // In de mapping-wizard: bepaal branche uit tabbladnaam
+  const getBranchFromTab = (tabName) => {
+    if (!tabName) return '';
+    if (tabName.toLowerCase().includes('thuisbatterij')) return 'Thuisbatterij';
+    if (tabName.toLowerCase().includes('airco')) return 'Airco';
+    if (tabName.toLowerCase().includes('gz accu')) return 'GZ Accu';
+    return '';
+  };
+
   return (
     <Box maxWidth={700} mx="auto" mt={4}>
       <Typography variant="h4" fontWeight={900} mb={3} color="#6366f1">Leads importeren uit Google Sheets</Typography>
@@ -249,7 +307,7 @@ function ImportLeads() {
                       sx={{ minWidth: 160 }}
                     >
                       <MenuItem value=""><em>Niet mappen</em></MenuItem>
-                      {leadFields.map(f => (
+                      {(branchLeadFields[getBranchFromTab(filteredTabs[wizardIndex].name)] || []).map(f => (
                         <MenuItem key={f.value} value={f.value}>{f.label}</MenuItem>
                       ))}
                     </Select>
