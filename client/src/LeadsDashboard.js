@@ -86,7 +86,7 @@ const LEAD_TYPE_COLUMNS = {
   ]
 };
 
-const LEAD_TYPES = ['Thuisbatterij', 'Airco', 'GZ Accu'];
+const LEAD_TYPES = ['Thuisbatterij', 'Airco', 'GZ Accu', 'Overige'];
 
 export default function LeadsDashboard() {
   const [search, setSearch] = React.useState('');
@@ -146,6 +146,10 @@ export default function LeadsDashboard() {
     Thuisbatterij: safeLeads.filter(l => (l.sheetBranche || '').toLowerCase().includes('thuisbatterij')),
     Airco: safeLeads.filter(l => (l.sheetBranche || '').toLowerCase().includes('airco')),
     'GZ Accu': safeLeads.filter(l => (l.sheetBranche || '').toLowerCase().includes('gz accu')),
+    Overige: safeLeads.filter(l => {
+      const b = (l.sheetBranche || '').toLowerCase();
+      return b && !b.includes('thuisbatterij') && !b.includes('airco') && !b.includes('gz accu');
+    })
   };
 
   return (
@@ -263,6 +267,13 @@ export default function LeadsDashboard() {
         ))}
       </Tabs>
 
+      {/* Waarschuwing als er onbekende leads zijn */}
+      {groupedLeads.Overige.length > 0 && (
+        <Box sx={{ mb: 2, p: 2, background: '#fffbe0', borderRadius: 2, color: '#b45309', fontWeight: 700 }}>
+          Let op: Er zijn {groupedLeads.Overige.length} leads met een onbekende branche. Controleer de tabbladnamen in Google Sheets!
+        </Box>
+      )}
+
       {LEAD_TYPES.map((type, idx) => (
         activeTab === idx && (
           <Box key={type} sx={{ mb: 6 }}>
@@ -271,7 +282,7 @@ export default function LeadsDashboard() {
                 <Table stickyHeader>
                   <TableHead>
                     <TableRow>
-                      {LEAD_TYPE_COLUMNS[type].map(col => (
+                      {(LEAD_TYPE_COLUMNS[type] || Object.keys(groupedLeads[type][0] || {}).map(k => ({ key: k, label: k }))).map(col => (
                         <TableCell key={col.key} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col.label}</TableCell>
                       ))}
                       <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Acties</TableCell>
@@ -280,7 +291,7 @@ export default function LeadsDashboard() {
                   <TableBody>
                     {groupedLeads[type].map(lead => (
                       <TableRow key={lead.id} hover>
-                        {LEAD_TYPE_COLUMNS[type].map(col => (
+                        {(LEAD_TYPE_COLUMNS[type] || Object.keys(lead).map(k => ({ key: k, label: k }))).map(col => (
                           <TableCell key={col.key}>{lead[col.key] || ''}</TableCell>
                         ))}
                         <TableCell align="center">
