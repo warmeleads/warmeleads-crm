@@ -37,6 +37,55 @@ function stringAvatar(name) {
   };
 }
 
+// Kolommen per branche/type
+const LEAD_TYPE_COLUMNS = {
+  Thuisbatterij: [
+    { key: 'naamKlant', label: 'Naam klant' },
+    { key: 'datumInteresse', label: 'Datum interesse klant' },
+    { key: 'postcode', label: 'Postcode' },
+    { key: 'plaatsnaam', label: 'Plaatsnaam' },
+    { key: 'telefoonnummer', label: 'Telefoonnummer' },
+    { key: 'email', label: 'E-mail' },
+    { key: 'zonnepanelen', label: 'Zonnepanelen' },
+    { key: 'dynamischContract', label: 'Dynamisch contract' },
+    { key: 'stroomverbruik', label: 'Stroomverbruik' },
+    { key: 'budget', label: 'Budget' },
+    { key: 'redenThuisbatterij', label: 'Reden Thuisbatterij' },
+  ],
+  Airco: [
+    { key: 'naamKlant', label: 'Naam klant' },
+    { key: 'datumInteresse', label: 'Datum interesse klant' },
+    { key: 'postcode', label: 'Postcode' },
+    { key: 'huisnummer', label: 'Huisnummer' },
+    { key: 'plaatsnaam', label: 'Plaatsnaam' },
+    { key: 'telefoonnummer', label: 'Telefoonnummer' },
+    { key: 'email', label: 'E-mail' },
+    { key: 'typeAirco', label: 'Type airco' },
+    { key: 'koelenVerwarmen', label: 'Koelen/verwarmen?' },
+    { key: 'hoeveelRuimtes', label: 'Hoeveel ruimtes?' },
+    { key: 'zakelijk', label: 'Zakelijk?' },
+    { key: 'koopOfHuur', label: 'Koop of huur?' },
+    { key: 'boorwerkzaamheden', label: 'Boorwerkzaamheden toegestaan?' },
+  ],
+  'GZ Accu': [
+    { key: 'naamKlant', label: 'Naam klant' },
+    { key: 'datum', label: 'Datum' },
+    { key: 'postcode', label: 'Postcode' },
+    { key: 'huisnummer', label: 'Huisnummer' },
+    { key: 'plaatsnaam', label: 'Plaatsnaam' },
+    { key: 'afstand', label: 'Afstand' },
+    { key: 'binnenGebied', label: 'Binnen gebied?' },
+    { key: 'verwerkt', label: 'Verwerkt?' },
+    { key: 'geexporteerd', label: 'Geëxporteerd?' },
+    { key: 'telefoonnummer', label: 'Telefoonnummer' },
+    { key: 'email', label: 'E-mail' },
+    { key: 'meerDan75000', label: 'Meer dan 75.000 kWh per jaar?' },
+    { key: 'zonnepanelen', label: 'Zonnepanelen?' },
+    { key: 'hoeveelKwh', label: 'Hoeveel kWh opwekking?' },
+    { key: 'redenAccu', label: 'Reden Accu' },
+  ]
+};
+
 export default function LeadsDashboard() {
   const [search, setSearch] = React.useState('');
   const [filterValid, setFilterValid] = React.useState('all');
@@ -87,6 +136,13 @@ export default function LeadsDashboard() {
     text: '#222',
     tableBg: '#f4f7fa',
     tableHeader: '#e0e7ff',
+  };
+
+  // Groepeer leads per branche/type
+  const groupedLeads = {
+    Thuisbatterij: safeLeads.filter(l => (l.sheetBranche || '').toLowerCase().includes('thuisbatterij')),
+    Airco: safeLeads.filter(l => (l.sheetBranche || '').toLowerCase().includes('airco')),
+    'GZ Accu': safeLeads.filter(l => (l.sheetBranche || '').toLowerCase().includes('gz accu')),
   };
 
   return (
@@ -305,6 +361,47 @@ export default function LeadsDashboard() {
           <Button color="error" onClick={handleDeleteAllLeads}>Alles verwijderen</Button>
         </DialogActions>
       </Dialog>
+
+      {/* In de render: per type een eigen tabel met relevante kolommen en Acties */}
+      {Object.entries(groupedLeads).map(([type, leads]) => (
+        <Box key={type} sx={{ mb: 6 }}>
+          <Typography variant="h4" sx={{ fontWeight: 800, color: palette.accent, mb: 2 }}>{type} Leads</Typography>
+          <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden' }}>
+            <TableContainer sx={{ background: palette.tableBg }}>
+              <Table stickyHeader>
+                <TableHead>
+                  <TableRow>
+                    {LEAD_TYPE_COLUMNS[type].map(col => (
+                      <TableCell key={col.key} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col.label}</TableCell>
+                    ))}
+                    <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Acties</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {leads.map(lead => (
+                    <TableRow key={lead.id} hover>
+                      {LEAD_TYPE_COLUMNS[type].map(col => (
+                        <TableCell key={col.key}>{lead[col.key] || ''}</TableCell>
+                      ))}
+                      <TableCell align="center">
+                        <IconButton color="primary" size="small" title="Kopieer lead ID">
+                          <ContentCopyIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton color="info" size="small" title="Details" onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
+                          <InfoOutlinedIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton color="error" size="small" title="Verwijder lead" onClick={() => { setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Box>
+      ))}
     </Box>
   );
 } 
