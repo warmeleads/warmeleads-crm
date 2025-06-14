@@ -8,6 +8,9 @@ require('dotenv').config();
 const { sequelize } = require('./models');
 const logger = require('./utils/logger');
 
+// Global variable to track database availability
+global.dbAvailable = false;
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
@@ -26,6 +29,17 @@ process.on('uncaughtException', function (err) {
 process.on('unhandledRejection', function (reason, p) {
   console.error('Unhandled Rejection:', reason);
 });
+
+// Database availability middleware
+const checkDatabase = (req, res, next) => {
+  if (!global.dbAvailable) {
+    return res.status(503).json({ 
+      error: 'Database not available', 
+      message: 'Please add a DATABASE_URL environment variable to enable database features' 
+    });
+  }
+  next();
+};
 
 // Security middleware
 app.use(helmet());
@@ -48,16 +62,20 @@ app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    timestamp: new Date().toISOString(),
+    database: global.dbAvailable ? 'connected' : 'disconnected'
+  });
 });
 
-// API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/api/leads', leadRoutes);
-app.use('/api/distribution', distributionRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/settings', settingsRoutes);
+// API routes (with database check)
+app.use('/api/auth', checkDatabase, authRoutes);
+app.use('/api/customers', checkDatabase, customerRoutes);
+app.use('/api/leads', checkDatabase, leadRoutes);
+app.use('/api/distribution', checkDatabase, distributionRoutes);
+app.use('/api/analytics', checkDatabase, analyticsRoutes);
+app.use('/api/settings', checkDatabase, settingsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -76,14 +94,21 @@ app.use('*', (req, res) => {
 // Start server
 async function startServer() {
   try {
-    // Test database connection
-    await sequelize.authenticate();
-    logger.info('Database connection established successfully.');
-    
-    // Sync database (in development)
-    if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: true });
-      logger.info('Database synced.');
+    // Test database connection (optional for now)
+    try {
+      await sequelize.authenticate();
+      logger.info('Database connection established successfully.');
+      global.dbAvailable = true;
+      
+      // Sync database (in development)
+      if (process.env.NODE_ENV === 'development') {
+        await sequelize.sync({ alter: true });
+        logger.info('Database synced.');
+      }
+    } catch (dbError) {
+      logger.warn('Database connection failed, starting server without database:', dbError.message);
+      console.log('⚠️  Database connectie mislukt, server start zonder database');
+      global.dbAvailable = false;
     }
     
     const server = app.listen(PORT, () => {
