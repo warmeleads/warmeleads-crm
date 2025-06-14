@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+const { execSync } = require('child_process');
 require('dotenv').config();
 
 const { sequelize } = require('./models');
@@ -109,6 +110,17 @@ app.use('*', (req, res) => {
 // Start server
 async function startServer() {
   try {
+    console.log('DEBUG: MIGRATE_ON_START =', process.env.MIGRATE_ON_START);
+    // Automatische migratie uitvoeren als MIGRATE_ON_START is gezet
+    if (process.env.MIGRATE_ON_START === 'true') {
+      try {
+        console.log('==> Voer database migraties uit...');
+        execSync('npx sequelize-cli db:migrate --env production --config server/config/config.json', { stdio: 'inherit' });
+        console.log('==> Migraties voltooid!');
+      } catch (err) {
+        console.error('==> Migratie-fout:', err);
+      }
+    }
     // Test database connection (optional for now)
     try {
       await sequelize.authenticate();
