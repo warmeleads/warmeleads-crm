@@ -26,12 +26,27 @@ class GoogleSheetsService {
       return;
     }
 
-    this.jwtClient = new google.auth.JWT(
-      this.credentials.client_email,
-      null,
-      this.credentials.private_key,
-      ['https://www.googleapis.com/auth/spreadsheets']
-    );
+    try {
+      logger.info('[DEBUG] Probeer JWT client aan te maken met client_email:', this.credentials.client_email);
+      this.jwtClient = new google.auth.JWT(
+        this.credentials.client_email,
+        null,
+        this.credentials.private_key,
+        ['https://www.googleapis.com/auth/spreadsheets']
+      );
+      logger.info('[DEBUG] JWT client succesvol aangemaakt. Probeer te authorizen...');
+      this.jwtClient.authorize((err, tokens) => {
+        if (err) {
+          logger.error('[DEBUG] Fout bij authorize() van JWT client:', err);
+        } else {
+          logger.info('[DEBUG] JWT client succesvol geautoriseerd. Tokens:', tokens);
+        }
+      });
+    } catch (e) {
+      logger.error('[DEBUG] Fout bij aanmaken of authorizen van JWT client:', e);
+      this.sheets = null;
+      return;
+    }
     this.sheets = google.sheets({ version: 'v4', auth: this.jwtClient });
   }
 
