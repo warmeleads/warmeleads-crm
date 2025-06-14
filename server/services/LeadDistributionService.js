@@ -594,6 +594,70 @@ class LeadDistributionService {
     }
     return totaalGeimporteerd;
   }
+
+  /**
+   * Importeer leads uit geselecteerde tabbladen en optioneel filter op branche
+   * @param {Object} opts - { sheetId, tabNames, branch }
+   */
+  async importLeadsFromSelectedTabs({ sheetId, tabNames, branch }) {
+    if (!sheetId || !tabNames || !Array.isArray(tabNames) || tabNames.length === 0) {
+      throw new Error('sheetId en tabNames zijn verplicht');
+    }
+    // Mapping per branche
+    const brancheMappings = {
+      'Thuisbatterij': [
+        'Naam klant', 'Datum interesse klant', 'Postcode', 'Huisnummer', 'plaatsnaam', 'Telefoonnummer', 'E-mail', 'Zonnepanelen', 'Dynamisch contract', 'Stroomverbruik', 'Budget', 'Reden Thuisbatterij?'
+      ],
+      'Airco': [
+        'Naam klant', 'Datum interesse klant', 'Postcode', 'Huisnummer', 'Plaatsnaam', 'Telefoonnummer', 'E-mail', 'Type airco', 'Koelen/verwarmen?', 'Hoeveel ruimtes?', 'Zakelijk?', 'Koop of huur?', 'Boorwerkzaamheden toegestaan?'
+      ],
+      'GZ Accu': [
+        'Naam klant', 'Datum', 'Postcode', 'Huisnummer', 'plaatsnaam', 'Telefoonnummer', 'E-mail', 'Meer dan 75.000 kWh per jaar?', 'Zonnepanelen?', 'Hoeveel kWh opwekking?', 'Reden Accu'
+      ]
+    };
+    let totaalGeimporteerd = 0;
+    for (const tabName of tabNames) {
+      // Metadata uit tabbladnaam
+      const [sheetCustomerName, sheetBranche, sheetLocation] = tabName.split(',').map(s => s.trim());
+      if (branch && (!sheetBranche || sheetBranche.toLowerCase() !== branch.toLowerCase())) {
+        continue; // Sla tabbladen over die niet bij de gekozen branche horen
+      }
+      // Haal alle rijen op uit dit tabblad
+      const rows = await this.googleSheetsService.getAllRows(sheetId, tabName);
+      if (!rows || rows.length < 2) continue;
+      const header = rows[0];
+      const dataRows = rows.slice(1);
+      for (const row of dataRows) {
+        // Uniek ID: e-mail + telefoon + evt. datum
+        const emailIdx = header.findIndex(h => h.toLowerCase().includes('email'));
+        const phoneIdx = header.findIndex(h => h.toLowerCase().includes('phone'));
+        const dateIdx = header.findIndex(h => h.toLowerCase().includes('date'));
+        const facebookLeadId = (row[dateIdx] || '') + (row[emailIdx] || '') + (row[phoneIdx] || '');
+        // Check of deze lead al bestaat
+        const existing = await Lead.findOne({ where: { facebookLeadId } });
+        if (existing) continue;
+        // Maak leadData object
+        const leadData = {};
+        header.forEach((col, i) => { leadData[col] = row[i]; });
+        leadData.facebookLeadId = facebookLeadId;
+        leadData.sheetTabName = tabName;
+        leadData.sheetCustomerName = sheetCustomerName;
+        leadData.sheetBranche = sheetBranche;
+        leadData.sheetLocation = sheetLocation;
+        // Mapping naar CRM-velden (optioneel: per branche)
+        // Hier kun je per branche een mapping doen, nu alleen als voorbeeld:
+        // Voorbeeld: leadData.firstName = leadData['Naam klant']
+        // Validatie: telefoonnummer NL/BE
+        leadData.phoneValid = /^((\+31|0)[1-9][0-9]{8})$|^(\+32|0)[1-9][0-9]{7,8}$/.test(leadData['Telefoonnummer'] || leadData['Telefoon'] || '');
+        // Validatie: e-mail
+        leadData.emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(leadData['E-mail'] || leadData['Email'] || '');
+        // Verdeel lead
+        await this.distributeLead(leadData);
+        totaalGeimporteerd++;
+      }
+    }
+    return totaalGeimporteerd;
+  }
 }
 
 module.exports = LeadDistributionService; 

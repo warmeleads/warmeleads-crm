@@ -6,6 +6,7 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { Box, Typography } from '@mui/material';
 import Settings from './Settings';
+import ImportLeads from './ImportLeads';
 
 function Leads() {
   return <div><h2>Leads</h2><p>Hier komt het overzicht van leads.</p></div>;
@@ -93,6 +94,28 @@ function App() {
                 Klanten
               </Link>
             </li>
+            <li style={{ marginBottom: 24 }}>
+              <Link style={{
+                color: '#fff',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+                fontWeight: 700,
+                fontSize: 18,
+                padding: '12px 20px',
+                borderRadius: 12,
+                transition: 'background 0.2s',
+                background: window.location.pathname === '/import' ? palette.sidebarActive : 'none',
+                color: window.location.pathname === '/import' ? palette.accent : '#fff',
+                boxShadow: window.location.pathname === '/import' ? '0 2px 12px #fff3' : 'none',
+                filter: window.location.pathname === '/import' ? 'drop-shadow(0 2px 8px #06b6d4)' : 'none',
+                cursor: 'pointer',
+              }} to="/import">
+                <ListAltIcon sx={{ fontSize: 24, color: window.location.pathname === '/import' ? palette.accent : '#fff' }} />
+                Importeren
+              </Link>
+            </li>
             <li>
               <Link style={{
                 color: '#fff',
@@ -122,6 +145,7 @@ function App() {
             <Route path="/" element={<LeadsDashboard />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/import" element={<ImportLeads />} />
           </Routes>
         </main>
       </div>
