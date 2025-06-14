@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, InputAdornment, IconButton, Button, Chip, Avatar, Grid, Card, CardContent, Fade, Drawer, Divider, Dialog, DialogTitle, DialogContent, DialogActions
+  Box, Typography, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, InputAdornment, IconButton, Button, Chip, Avatar, Grid, Card, CardContent, Fade, Drawer, Divider, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -86,6 +86,8 @@ const LEAD_TYPE_COLUMNS = {
   ]
 };
 
+const LEAD_TYPES = ['Thuisbatterij', 'Airco', 'GZ Accu'];
+
 export default function LeadsDashboard() {
   const [search, setSearch] = React.useState('');
   const [filterValid, setFilterValid] = React.useState('all');
@@ -95,6 +97,7 @@ export default function LeadsDashboard() {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [deleteAllDialogOpen, setDeleteAllDialogOpen] = React.useState(false);
   const [leadToDelete, setLeadToDelete] = React.useState(null);
+  const [activeTab, setActiveTab] = React.useState(0);
 
   React.useEffect(() => {
     fetchLeads();
@@ -254,69 +257,52 @@ export default function LeadsDashboard() {
         </IconButton>
       </Paper>
 
-      {/* Leads tabel in card */}
-      <Fade in timeout={1200}>
-        <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden' }}>
-          <TableContainer sx={{ background: palette.tableBg }}>
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ background: palette.tableHeader, color: palette.accent, fontWeight: 800, fontSize: 16 }}>Naam</TableCell>
-                  <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>E-mail</TableCell>
-                  <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Telefoon</TableCell>
-                  <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Locatie</TableCell>
-                  <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Branche</TableCell>
-                  <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Validatie</TableCell>
-                  <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Duplicaat</TableCell>
-                  <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Aangemaakt</TableCell>
-                  <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }} align="center">Acties</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {safeLeads
-                  .filter(lead =>
-                    (filterValid === 'all' || (filterValid === 'valid' && lead.valid) || (filterValid === 'invalid' && !lead.valid)) &&
-                    ((lead.firstName || '').toLowerCase().includes(search.toLowerCase()) ||
-                      (lead.email || '').toLowerCase().includes(search.toLowerCase()) ||
-                      (lead.city || '').toLowerCase().includes(search.toLowerCase()))
-                  )
-                  .map(lead => (
-                    <TableRow key={lead.id} hover sx={{ cursor: 'pointer', transition: 'background 0.2s', '&:hover': { background: '#e0e7ff' } }} onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar {...stringAvatar(lead.name)} sx={{ width: 36, height: 36, fontSize: 18, mr: 1 }} />
-                          <span style={{ fontWeight: 700, color: palette.text }}>{lead.name}</span>
-                        </Box>
-                      </TableCell>
-                      <TableCell>{lead.email}</TableCell>
-                      <TableCell>{lead.phone}</TableCell>
-                      <TableCell>{lead.location}</TableCell>
-                      <TableCell>{lead.branche}</TableCell>
-                      <TableCell>
-                        {lead.valid ? <Chip label="Geldig" sx={{ background: palette.accent2, color: '#fff', fontWeight: 700 }} size="small" /> : <Chip label="Ongeldig" sx={{ background: '#f59e42', color: '#fff', fontWeight: 700 }} size="small" />}
-                      </TableCell>
-                      <TableCell>
-                        {lead.duplicate ? <Chip label="Duplicaat" sx={{ background: palette.accent, color: '#fff', fontWeight: 700 }} size="small" /> : <Chip label="Uniek" sx={{ background: palette.accent3, color: '#fff', fontWeight: 700 }} size="small" />}
-                      </TableCell>
-                      <TableCell>{lead.createdAt}</TableCell>
-                      <TableCell align="center">
-                        <IconButton color="primary" size="small" title="Kopieer lead ID">
-                          <ContentCopyIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton color="info" size="small" title="Details" onClick={e => { e.stopPropagation(); setSelectedLead(lead); setDrawerOpen(true); }}>
-                          <InfoOutlinedIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton color="error" size="small" title="Verwijder lead" onClick={e => { e.stopPropagation(); setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
+      <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} sx={{ mb: 4 }}>
+        {LEAD_TYPES.map((type, idx) => (
+          <Tab key={type} label={type + ' Leads'} />
+        ))}
+      </Tabs>
+
+      {LEAD_TYPES.map((type, idx) => (
+        activeTab === idx && (
+          <Box key={type} sx={{ mb: 6 }}>
+            <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden' }}>
+              <TableContainer sx={{ background: palette.tableBg }}>
+                <Table stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      {LEAD_TYPE_COLUMNS[type].map(col => (
+                        <TableCell key={col.key} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col.label}</TableCell>
+                      ))}
+                      <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Acties</TableCell>
                     </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Paper>
-      </Fade>
+                  </TableHead>
+                  <TableBody>
+                    {groupedLeads[type].map(lead => (
+                      <TableRow key={lead.id} hover>
+                        {LEAD_TYPE_COLUMNS[type].map(col => (
+                          <TableCell key={col.key}>{lead[col.key] || ''}</TableCell>
+                        ))}
+                        <TableCell align="center">
+                          <IconButton color="primary" size="small" title="Kopieer lead ID">
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton color="info" size="small" title="Details" onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
+                            <InfoOutlinedIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton color="error" size="small" title="Verwijder lead" onClick={() => { setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Paper>
+          </Box>
+        )
+      ))}
 
       {/* Lead details drawer */}
       <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)} PaperProps={{ sx: { width: { xs: '100%', sm: 400, md: 480 }, p: 3, background: '#f8fafc' } }}>
@@ -361,47 +347,6 @@ export default function LeadsDashboard() {
           <Button color="error" onClick={handleDeleteAllLeads}>Alles verwijderen</Button>
         </DialogActions>
       </Dialog>
-
-      {/* In de render: per type een eigen tabel met relevante kolommen en Acties */}
-      {Object.entries(groupedLeads).map(([type, leads]) => (
-        <Box key={type} sx={{ mb: 6 }}>
-          <Typography variant="h4" sx={{ fontWeight: 800, color: palette.accent, mb: 2 }}>{type} Leads</Typography>
-          <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden' }}>
-            <TableContainer sx={{ background: palette.tableBg }}>
-              <Table stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    {LEAD_TYPE_COLUMNS[type].map(col => (
-                      <TableCell key={col.key} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col.label}</TableCell>
-                    ))}
-                    <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Acties</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {leads.map(lead => (
-                    <TableRow key={lead.id} hover>
-                      {LEAD_TYPE_COLUMNS[type].map(col => (
-                        <TableCell key={col.key}>{lead[col.key] || ''}</TableCell>
-                      ))}
-                      <TableCell align="center">
-                        <IconButton color="primary" size="small" title="Kopieer lead ID">
-                          <ContentCopyIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton color="info" size="small" title="Details" onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
-                          <InfoOutlinedIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton color="error" size="small" title="Verwijder lead" onClick={() => { setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
-        </Box>
-      ))}
     </Box>
   );
 } 
