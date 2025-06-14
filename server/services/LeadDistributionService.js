@@ -653,7 +653,7 @@ class LeadDistributionService {
         leadData.sheetBranche = sheetBranche;
         leadData.sheetLocation = sheetLocation;
         // Verplichte velden fallback
-        if (!leadData.country) leadData.country = 'Nederland';
+        if (!leadData.country) leadData.country = 'Netherlands';
         if (!leadData.latitude) leadData.latitude = 0;
         if (!leadData.longitude) leadData.longitude = 0;
         if (!leadData.firstName) leadData.firstName = 'Onbekend';
