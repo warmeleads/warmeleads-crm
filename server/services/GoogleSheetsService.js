@@ -5,49 +5,26 @@ const path = require('path');
 
 class GoogleSheetsService {
   constructor() {
-    // Debug: log presence and start of env var
-    if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
-      logger.info('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is aanwezig. Eerste 100 tekens:', process.env.GOOGLE_SERVICE_ACCOUNT_JSON.substring(0, 100));
-      console.log('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is aanwezig. Eerste 100 tekens:', process.env.GOOGLE_SERVICE_ACCOUNT_JSON.substring(0, 100));
-      try {
-        this.credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
-        logger.info('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is geldige JSON. client_email:', this.credentials.client_email);
-        console.log('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is geldige JSON. client_email:', this.credentials.client_email);
-      } catch (e) {
-        logger.error('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is geen geldige JSON!', e);
-        console.log('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is geen geldige JSON!', e);
-        this.sheets = null;
-        return;
-      }
-    } else {
-      logger.warn('[DEBUG] Geen GOOGLE_SERVICE_ACCOUNT_JSON gevonden. Google Sheets integratie werkt niet.');
-      console.log('[DEBUG] Geen GOOGLE_SERVICE_ACCOUNT_JSON gevonden. Google Sheets integratie werkt niet.');
-      this.sheets = null;
-      return;
+    // Zoek het juiste pad voor de secret file
+    let keyFilePath = 'google-service-account.json';
+    if (fs.existsSync('/etc/secrets/google-service-account.json')) {
+      keyFilePath = '/etc/secrets/google-service-account.json';
+    } else if (fs.existsSync(path.join(__dirname, '../../google-service-account.json'))) {
+      keyFilePath = path.join(__dirname, '../../google-service-account.json');
     }
+    logger.info('[DEBUG] Gebruik Google service account keyFile:', keyFilePath);
 
     try {
-      logger.info('[DEBUG] Probeer JWT client aan te maken met client_email:', this.credentials.client_email);
-      this.jwtClient = new google.auth.JWT(
-        this.credentials.client_email,
-        null,
-        this.credentials.private_key,
-        ['https://www.googleapis.com/auth/spreadsheets']
-      );
-      logger.info('[DEBUG] JWT client succesvol aangemaakt. Probeer te authorizen...');
-      this.jwtClient.authorize((err, tokens) => {
-        if (err) {
-          logger.error('[DEBUG] Fout bij authorize() van JWT client:', err);
-        } else {
-          logger.info('[DEBUG] JWT client succesvol geautoriseerd. Tokens:', tokens);
-        }
+      this.jwtClient = new google.auth.GoogleAuth({
+        keyFile: keyFilePath,
+        scopes: ['https://www.googleapis.com/auth/spreadsheets']
       });
+      this.sheets = google.sheets({ version: 'v4', auth: this.jwtClient });
     } catch (e) {
-      logger.error('[DEBUG] Fout bij aanmaken of authorizen van JWT client:', e);
+      logger.error('[DEBUG] Fout bij aanmaken van GoogleAuth client:', e);
       this.sheets = null;
       return;
     }
-    this.sheets = google.sheets({ version: 'v4', auth: this.jwtClient });
   }
 
   /**
