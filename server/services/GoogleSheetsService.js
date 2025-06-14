@@ -48,7 +48,7 @@ class GoogleSheetsService {
       throw new Error('Geen geldige tabbladnaam opgegeven.');
     }
     try {
-      await this.jwtClient.authorize();
+      // await this.jwtClient.authorize(); // VERWIJDERD
       // Controleer of de sheetId bestaat
       let sheetNames;
       try {
@@ -98,7 +98,7 @@ class GoogleSheetsService {
       throw new Error('Geen geldige tabbladnaam opgegeven.');
     }
     try {
-      await this.jwtClient.authorize();
+      // await this.jwtClient.authorize(); // VERWIJDERD
       const response = await this.sheets.spreadsheets.values.get({
         spreadsheetId: sheetId,
         range: `${sheetName}`
@@ -125,7 +125,7 @@ class GoogleSheetsService {
       throw new Error('Geen geldige Google Sheet ID opgegeven.');
     }
     try {
-      await this.jwtClient.authorize();
+      // await this.jwtClient.authorize(); // VERWIJDERD
       const response = await this.sheets.spreadsheets.get({
         spreadsheetId: sheetId
       });
