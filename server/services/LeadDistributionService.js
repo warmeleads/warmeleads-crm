@@ -605,6 +605,8 @@ class LeadDistributionService {
       throw new Error('sheetId en tabNames zijn verplicht');
     }
     let totaalGeimporteerd = 0;
+    let totaalDuplicaten = 0;
+    let importDetails = [];
     for (const tabName of tabNames) {
       // Metadata uit tabbladnaam
       const [sheetCustomerName, sheetBranche, sheetLocation] = tabName.split(',').map(s => s.trim());
@@ -627,7 +629,11 @@ class LeadDistributionService {
         const facebookLeadId = (rowArr[dateIdx] || '') + (rowArr[emailIdx] || '') + (rowArr[phoneIdx] || '');
         // Check of deze lead al bestaat
         const existing = await Lead.findOne({ where: { facebookLeadId } });
-        if (existing) continue;
+        if (existing) {
+          totaalDuplicaten++;
+          importDetails.push({ status: 'duplicate', facebookLeadId, tabName });
+          continue;
+        }
         // Mapping per tabblad: gebruik mapping uit argument als aanwezig, anders standaard mapping
         let leadData = {};
         if (mapping && mapping[tabName]) {
@@ -669,12 +675,19 @@ class LeadDistributionService {
         leadData.phoneValid = /^((\+31|0)[1-9][0-9]{8})$|^(\+32|0)[1-9][0-9]{7,8}$/.test(leadData.phone || '');
         // Validatie: e-mail
         leadData.emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(leadData.email || '');
-        // Verdeel lead
-        await this.distributeLead(leadData);
-        totaalGeimporteerd++;
+        // Probeer lead aan te maken
+        try {
+          await this.distributeLead(leadData);
+          totaalGeimporteerd++;
+          importDetails.push({ status: 'imported', facebookLeadId, tabName, warning: leadData.importWarning });
+        } catch (err) {
+          logger.error('Fout bij aanmaken lead:', err);
+          importDetails.push({ status: 'error', facebookLeadId, tabName, error: err.message });
+        }
       }
     }
-    return totaalGeimporteerd;
+    logger.info(`Importresultaat: ${totaalGeimporteerd} leads aangemaakt, ${totaalDuplicaten} duplicaten, details:`, importDetails);
+    return { imported: totaalGeimporteerd, duplicates: totaalDuplicaten, details: importDetails };
   }
 }
 

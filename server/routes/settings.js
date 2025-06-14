@@ -62,8 +62,8 @@ router.post('/sheet', (req, res) => {
 router.post('/import-sheet-leads', async (req, res) => {
   try {
     const { sheetId, tabNames, branch, mapping } = req.body;
-    const imported = await leadDistributionService.importLeadsFromSelectedTabs({ sheetId, tabNames, branch, mapping });
-    res.json({ success: true, imported });
+    const result = await leadDistributionService.importLeadsFromSelectedTabs({ sheetId, tabNames, branch, mapping });
+    res.json({ success: true, ...result });
   } catch (error) {
     logger.error('Error importing leads from sheet:', error);
     res.status(500).json({ error: error.message });
