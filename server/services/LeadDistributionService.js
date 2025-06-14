@@ -636,17 +636,24 @@ class LeadDistributionService {
         // Check of deze lead al bestaat
         const existing = await Lead.findOne({ where: { facebookLeadId } });
         if (existing) continue;
-        // Maak leadData object
+        // Mapping van sheet naar Lead-model
         const leadData = {};
         header.forEach((col, i) => { leadData[col] = row[i]; });
+        // Mapping & defaults voor verplichte velden
         leadData.facebookLeadId = facebookLeadId;
+        leadData.facebookAdId = leadData['Facebook Ad ID'] || 'unknown';
+        leadData.facebookCampaignId = leadData['Facebook Campaign ID'] || 'unknown';
+        leadData.firstName = leadData['Voornaam'] || leadData['Naam klant'] || leadData['naam'] || 'unknown';
+        leadData.lastName = leadData['Achternaam'] || leadData['leadnaam'] || 'unknown';
+        leadData.city = leadData['Plaatsnaam'] || leadData['plaats'] || 'unknown';
+        leadData.country = (leadData['land'] || 'Netherlands');
+        leadData.latitude = parseFloat(leadData['latitude'] || 0);
+        leadData.longitude = parseFloat(leadData['longitude'] || 0);
+        // Sheet metadata
         leadData.sheetTabName = tabName;
         leadData.sheetCustomerName = sheetCustomerName;
         leadData.sheetBranche = sheetBranche;
         leadData.sheetLocation = sheetLocation;
-        // Mapping naar CRM-velden (optioneel: per branche)
-        // Hier kun je per branche een mapping doen, nu alleen als voorbeeld:
-        // Voorbeeld: leadData.firstName = leadData['Naam klant']
         // Validatie: telefoonnummer NL/BE
         leadData.phoneValid = /^((\+31|0)[1-9][0-9]{8})$|^(\+32|0)[1-9][0-9]{7,8}$/.test(leadData['Telefoonnummer'] || leadData['Telefoon'] || '');
         // Validatie: e-mail
