@@ -115,14 +115,43 @@ async function startServer() {
     if (process.env.MIGRATE_ON_START === 'true') {
       try {
         console.log('==> Voer database migraties uit...');
+        console.log('==> Huidige directory:', process.cwd());
+        console.log('==> Migraties directory:', require('path').join(process.cwd(), 'migrations'));
+        
+        // Controleer of migratiebestanden bestaan
+        const fs = require('fs');
+        const migrationsPath = require('path').join(process.cwd(), 'migrations');
+        if (fs.existsSync(migrationsPath)) {
+          const files = fs.readdirSync(migrationsPath);
+          console.log('==> Gevonden migratiebestanden:', files);
+        } else {
+          console.log('==> Migraties directory niet gevonden!');
+        }
+        
         try {
-          const output = execSync('npx sequelize-cli db:migrate --env production --config config/config.json', { encoding: 'utf-8' });
+          const output = execSync('npx sequelize-cli db:migrate --env production --config config/config.json', { 
+            encoding: 'utf-8',
+            cwd: process.cwd(),
+            stdio: 'pipe'
+          });
           console.log('==> Migratie output:', output);
           console.log('==> Migraties voltooid!');
         } catch (err) {
           console.error('==> Migratie-fout:', err.message);
           if (err.stdout) console.error('==> STDOUT:', err.stdout.toString());
           if (err.stderr) console.error('==> STDERR:', err.stderr.toString());
+          
+          // Probeer handmatig te migreren met meer info
+          console.log('==> Probeer handmatige migratie...');
+          try {
+            const manualOutput = execSync('npx sequelize-cli db:migrate:status --env production --config config/config.json', { 
+              encoding: 'utf-8',
+              cwd: process.cwd()
+            });
+            console.log('==> Migratie status:', manualOutput);
+          } catch (statusErr) {
+            console.error('==> Status check faalde:', statusErr.message);
+          }
         }
       } catch (err) {
         console.error('==> Migratie-fout buiten:', err);

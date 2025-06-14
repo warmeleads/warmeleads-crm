@@ -1,14 +1,17 @@
 {
   "development": {
-    "url": "postgresql://localhost:5432/warmeleads",
-    "dialect": "postgres"
+    "url": "postgresql://warmeleads_db_user:McvfQeDjUE9jFqXUeNCUqEASQkWfkWvg@dpg-d16oepemcj7s73cd84sg-a/warmeleads_db",
+    "dialect": "postgres",
+    "migrations-path": "./migrations"
   },
   "test": {
-    "url": "postgresql://localhost:5432/warmeleads_test",
-    "dialect": "postgres"
+    "url": "postgresql://warmeleads_db_user:McvfQeDjUE9jFqXUeNCUqEASQkWfkWvg@dpg-d16oepemcj7s73cd84sg-a/warmeleads_db",
+    "dialect": "postgres",
+    "migrations-path": "./migrations"
   },
   "production": {
-    "url": "postgresql://localhost:5432/warmeleads",
-    "dialect": "postgres"
+    "url": "postgresql://warmeleads_db_user:McvfQeDjUE9jFqXUeNCUqEASQkWfkWvg@dpg-d16oepemcj7s73cd84sg-a/warmeleads_db",
+    "dialect": "postgres",
+    "migrations-path": "./migrations"
   }
 } 
