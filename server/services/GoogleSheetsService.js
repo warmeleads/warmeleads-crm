@@ -5,17 +5,19 @@ const path = require('path');
 
 class GoogleSheetsService {
   constructor() {
-    // Laad service account credentials UITSLUITEND uit environment variable
+    // Debug: log presence and start of env var
     if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+      logger.info('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is aanwezig. Eerste 100 tekens:', process.env.GOOGLE_SERVICE_ACCOUNT_JSON.substring(0, 100));
       try {
         this.credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+        logger.info('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is geldige JSON. client_email:', this.credentials.client_email);
       } catch (e) {
-        logger.error('GOOGLE_SERVICE_ACCOUNT_JSON is geen geldige JSON!');
+        logger.error('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is geen geldige JSON!', e);
         this.sheets = null;
         return;
       }
     } else {
-      logger.warn('Geen GOOGLE_SERVICE_ACCOUNT_JSON gevonden. Google Sheets integratie werkt niet.');
+      logger.warn('[DEBUG] Geen GOOGLE_SERVICE_ACCOUNT_JSON gevonden. Google Sheets integratie werkt niet.');
       this.sheets = null;
       return;
     }
