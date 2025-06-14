@@ -8,16 +8,20 @@ class GoogleSheetsService {
     // Debug: log presence and start of env var
     if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
       logger.info('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is aanwezig. Eerste 100 tekens:', process.env.GOOGLE_SERVICE_ACCOUNT_JSON.substring(0, 100));
+      console.log('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is aanwezig. Eerste 100 tekens:', process.env.GOOGLE_SERVICE_ACCOUNT_JSON.substring(0, 100));
       try {
         this.credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
         logger.info('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is geldige JSON. client_email:', this.credentials.client_email);
+        console.log('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is geldige JSON. client_email:', this.credentials.client_email);
       } catch (e) {
         logger.error('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is geen geldige JSON!', e);
+        console.log('[DEBUG] GOOGLE_SERVICE_ACCOUNT_JSON is geen geldige JSON!', e);
         this.sheets = null;
         return;
       }
     } else {
       logger.warn('[DEBUG] Geen GOOGLE_SERVICE_ACCOUNT_JSON gevonden. Google Sheets integratie werkt niet.');
+      console.log('[DEBUG] Geen GOOGLE_SERVICE_ACCOUNT_JSON gevonden. Google Sheets integratie werkt niet.');
       this.sheets = null;
       return;
     }
