@@ -19,6 +19,14 @@ const settingsRoutes = require('./routes/settings');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+console.log('ENV:', process.env);
+process.on('uncaughtException', function (err) {
+  console.error('Uncaught Exception:', err);
+});
+process.on('unhandledRejection', function (reason, p) {
+  console.error('Unhandled Rejection:', reason);
+});
+
 // Security middleware
 app.use(helmet());
 app.use(cors({
