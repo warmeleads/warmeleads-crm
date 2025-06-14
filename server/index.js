@@ -43,9 +43,15 @@ const checkDatabase = (req, res, next) => {
 };
 
 // Security middleware
+const allowedOrigins = [
+  'https://warmeleads-crm.onrender.com',
+  'https://www.warmeleadscrm.nl',
+  'http://localhost:3000'
+];
+
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: allowedOrigins,
   credentials: true
 }));
 
