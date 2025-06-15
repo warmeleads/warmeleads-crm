@@ -598,7 +598,8 @@ class LeadDistributionService {
         totaalGeimporteerd++;
       }
     }
-    return totaalGeimporteerd;
+    logger.info(`Importresultaat: ${totaalGeimporteerd} leads aangemaakt, ${totaalDuplicaten} duplicaten, details:`, importDetails);
+    return { imported: totaalGeimporteerd, duplicates: totaalDuplicaten, details: importDetails };
   }
 
   /**
@@ -685,15 +686,16 @@ class LeadDistributionService {
         // Validatie: e-mail
         leadData.emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(leadData.email || '');
         // Probeer lead aan te maken
-        logger.info(`[IMPORT] Probeer lead aan te maken:`, { leadData, tabName });
+        console.log('[IMPORT] Probeer lead aan te maken:', { leadData, tabName });
         try {
           const createdLead = await Lead.create(leadData, { transaction });
-          logger.info(`[IMPORT] Lead succesvol aangemaakt:`, { id: createdLead.id, facebookLeadId, tabName });
+          console.log('[IMPORT] Lead succesvol aangemaakt:', { id: createdLead.id, facebookLeadId, tabName });
           totaalGeimporteerd++;
           importDetails.push({ status: 'imported', facebookLeadId, tabName, warning: leadData.importWarning });
         } catch (err) {
-          logger.error(`[IMPORT] Fout bij aanmaken lead:`, { error: err.message, leadData, tabName });
+          console.error('[IMPORT] Fout bij aanmaken lead:', { error: err.message, leadData, tabName });
           importDetails.push({ status: 'error', facebookLeadId, tabName, error: err.message });
+          continue;
         }
       }
     }
@@ -702,4 +704,4 @@ class LeadDistributionService {
   }
 }
 
-module.exports = LeadDistributionService; 
+module.exports = LeadDistributionService;
