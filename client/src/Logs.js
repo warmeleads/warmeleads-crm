@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Box, Typography, Paper, Table, TableHead, TableRow, TableCell, TableBody, CircularProgress, Alert, Button } from '@mui/material';
 
+const API_BASE = process.env.REACT_APP_API_URL || 'https://warmeleads-crm.onrender.com';
+
 export default function Logs() {
   const [logs, setLogs] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
@@ -12,7 +14,7 @@ export default function Logs() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/settings/import-logs');
+      const res = await fetch(`${API_BASE}/api/settings/import-logs`);
       const data = await res.json();
       setLogs(data.logs || []);
     } catch (e) {
