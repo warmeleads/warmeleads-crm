@@ -61,12 +61,17 @@ router.post('/sheet', (req, res) => {
 
 // GET: Haal de laatste 100 importlogs op
 router.get('/import-logs', (req, res) => {
+  logger.info(`[LOGS] /import-logs endpoint aangeroepen. Pad: ${importLogsFile}`);
   let logs = [];
   if (!fs.existsSync(importLogsFile)) {
+    logger.warn(`[LOGS] Logbestand bestaat niet: ${importLogsFile}`);
     fs.writeFileSync(importLogsFile, '[]');
   }
   if (fs.existsSync(importLogsFile)) {
     logs = JSON.parse(fs.readFileSync(importLogsFile, 'utf8'));
+  }
+  if (logs.length === 0) {
+    logger.info(`[LOGS] Geen logs gevonden in ${importLogsFile}`);
   }
   res.json({ logs: logs.slice(-100).reverse() });
 });

@@ -685,12 +685,14 @@ class LeadDistributionService {
         // Validatie: e-mail
         leadData.emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(leadData.email || '');
         // Probeer lead aan te maken
+        logger.info(`[IMPORT] Probeer lead aan te maken:`, { leadData, tabName });
         try {
-          await this.distributeLead(leadData);
+          const createdLead = await Lead.create(leadData, { transaction });
+          logger.info(`[IMPORT] Lead succesvol aangemaakt:`, { id: createdLead.id, facebookLeadId, tabName });
           totaalGeimporteerd++;
           importDetails.push({ status: 'imported', facebookLeadId, tabName, warning: leadData.importWarning });
         } catch (err) {
-          logger.error('Fout bij aanmaken lead:', err);
+          logger.error(`[IMPORT] Fout bij aanmaken lead:`, { error: err.message, leadData, tabName });
           importDetails.push({ status: 'error', facebookLeadId, tabName, error: err.message });
         }
       }
