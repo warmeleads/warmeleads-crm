@@ -64,14 +64,26 @@ router.get('/', async (req, res) => {
     const totalCount = await Lead.count();
     logger.apiLog(`Totaal aantal leads in database: ${totalCount}`);
     
-    // Haal alle leads op met LeadType info
-    logger.apiLog('Start ophalen leads met LeadType...');
-    const leads = await Lead.findAll({ 
-      include: [{ model: LeadType, attributes: ['name', 'displayName'] }],
-      order: [['createdAt', 'DESC']]
-    });
-    
-    logger.apiLog(`Aantal leads opgehaald: ${leads.length}`);
+    // Probeer eerst met LeadType, als dat faalt dan zonder
+    let leads;
+    try {
+      logger.apiLog('Start ophalen leads met LeadType...');
+      leads = await Lead.findAll({ 
+        include: [{ model: LeadType, attributes: ['name', 'displayName'] }],
+        order: [['createdAt', 'DESC']]
+      });
+      logger.apiLog(`Aantal leads opgehaald met LeadType: ${leads.length}`);
+    } catch (includeError) {
+      logger.apiLog('LeadType include gefaald, probeer zonder LeadType', {
+        error: includeError.message
+      });
+      
+      // Fallback: haal leads op zonder LeadType
+      leads = await Lead.findAll({ 
+        order: [['createdAt', 'DESC']]
+      });
+      logger.apiLog(`Aantal leads opgehaald zonder LeadType: ${leads.length}`);
+    }
     
     // Log eerste paar leads voor debugging
     if (leads.length > 0) {

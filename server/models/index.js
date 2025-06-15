@@ -32,6 +32,10 @@ LeadDistribution.belongsTo(Customer, { foreignKey: 'customerId' });
 Lead.hasMany(LeadDistribution, { foreignKey: 'leadId' });
 LeadDistribution.belongsTo(Lead, { foreignKey: 'leadId' });
 
+// Lead belongs to LeadType
+Lead.belongsTo(LeadType, { foreignKey: 'leadTypeId' });
+LeadType.hasMany(Lead, { foreignKey: 'leadTypeId' });
+
 // Many-to-many relationship between Customer and LeadType
 Customer.belongsToMany(LeadType, { through: CustomerLeadType, foreignKey: 'customerId' });
 LeadType.belongsToMany(Customer, { through: CustomerLeadType, foreignKey: 'leadTypeId' });
