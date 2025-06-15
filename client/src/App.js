@@ -7,6 +7,8 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { Box, Typography } from '@mui/material';
 import Settings from './Settings';
 import ImportLeads from './ImportLeads';
+import BugReportIcon from '@mui/icons-material/BugReport';
+import Logs from './Logs';
 
 function Leads() {
   return <div><h2>Leads</h2><p>Hier komt het overzicht van leads.</p></div>;
@@ -116,6 +118,28 @@ function App() {
                 Importeren
               </Link>
             </li>
+            <li style={{ marginBottom: 24 }}>
+              <Link style={{
+                color: '#fff',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 16,
+                fontWeight: 700,
+                fontSize: 18,
+                padding: '12px 20px',
+                borderRadius: 12,
+                transition: 'background 0.2s',
+                background: window.location.pathname === '/logs' ? palette.sidebarActive : 'none',
+                color: window.location.pathname === '/logs' ? palette.accent : '#fff',
+                boxShadow: window.location.pathname === '/logs' ? '0 2px 12px #fff3' : 'none',
+                filter: window.location.pathname === '/logs' ? 'drop-shadow(0 2px 8px #06b6d4)' : 'none',
+                cursor: 'pointer',
+              }} to="/logs">
+                <BugReportIcon sx={{ fontSize: 24, color: window.location.pathname === '/logs' ? palette.accent : '#fff' }} />
+                Logs & Debug
+              </Link>
+            </li>
             <li>
               <Link style={{
                 color: '#fff',
@@ -146,6 +170,7 @@ function App() {
             <Route path="/customers" element={<Customers />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/import" element={<ImportLeads />} />
+            <Route path="/logs" element={<Logs />} />
           </Routes>
         </main>
       </div>
