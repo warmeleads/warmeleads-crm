@@ -12,6 +12,7 @@ const GoogleSheetsService = require('./GoogleSheetsService');
 const fs = require('fs');
 const path = require('path');
 const leadMappings = require('../lead-mapping');
+const { v4: uuidv4 } = require('uuid');
 
 class LeadDistributionService {
   constructor() {
@@ -572,7 +573,11 @@ class LeadDistributionService {
         const emailIdx = header.findIndex(h => h.toLowerCase().includes('email'));
         const phoneIdx = header.findIndex(h => h.toLowerCase().includes('phone'));
         const dateIdx = header.findIndex(h => h.toLowerCase().includes('date'));
-        const facebookLeadId = (row[dateIdx] || '') + (row[emailIdx] || '') + (row[phoneIdx] || '');
+        let facebookLeadId = (row[dateIdx] || '') + (row[emailIdx] || '') + (row[phoneIdx] || '');
+        if (!facebookLeadId) {
+          facebookLeadId = uuidv4();
+          logger.warn(`Lege facebookLeadId bij import, random UUID gebruikt: ${facebookLeadId} (tab: ${tabName})`);
+        }
         // Check of deze lead al bestaat
         const existing = await Lead.findOne({ where: { facebookLeadId } });
         if (existing) continue;
@@ -626,7 +631,11 @@ class LeadDistributionService {
         const emailIdx = header.findIndex(h => h.toLowerCase().includes('email'));
         const phoneIdx = header.findIndex(h => h.toLowerCase().includes('phone'));
         const dateIdx = header.findIndex(h => h.toLowerCase().includes('date'));
-        const facebookLeadId = (rowArr[dateIdx] || '') + (rowArr[emailIdx] || '') + (rowArr[phoneIdx] || '');
+        let facebookLeadId = (rowArr[dateIdx] || '') + (rowArr[emailIdx] || '') + (rowArr[phoneIdx] || '');
+        if (!facebookLeadId) {
+          facebookLeadId = uuidv4();
+          logger.warn(`Lege facebookLeadId bij import, random UUID gebruikt: ${facebookLeadId} (tab: ${tabName})`);
+        }
         // Check of deze lead al bestaat
         const existing = await Lead.findOne({ where: { facebookLeadId } });
         if (existing) {
