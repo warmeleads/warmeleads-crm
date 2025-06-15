@@ -6,6 +6,7 @@ const LeadDistributionService = require('../services/LeadDistributionService');
 const logger = require('../utils/logger');
 
 const settingsFile = path.join(__dirname, '../../settings.json');
+const importLogsFile = path.join(__dirname, '../../import-logs.json');
 const leadDistributionService = new LeadDistributionService();
 
 // GET huidige sheet URL/ID
@@ -58,11 +59,27 @@ router.post('/sheet', (req, res) => {
   res.json({ success: true });
 });
 
+// GET: Haal de laatste 100 importlogs op
+router.get('/import-logs', (req, res) => {
+  let logs = [];
+  if (fs.existsSync(importLogsFile)) {
+    logs = JSON.parse(fs.readFileSync(importLogsFile, 'utf8'));
+  }
+  res.json({ logs: logs.slice(-100).reverse() });
+});
+
 // POST: Importeer nieuwe leads uit Google Sheet
 router.post('/import-sheet-leads', async (req, res) => {
   try {
     const { sheetId, tabNames, branch, mapping } = req.body;
     const result = await leadDistributionService.importLeadsFromSelectedTabs({ sheetId, tabNames, branch, mapping });
+    // Log importresultaat naar bestand
+    let logs = [];
+    if (fs.existsSync(importLogsFile)) {
+      logs = JSON.parse(fs.readFileSync(importLogsFile, 'utf8'));
+    }
+    logs.push({ timestamp: new Date().toISOString(), ...result });
+    fs.writeFileSync(importLogsFile, JSON.stringify(logs.slice(-1000), null, 2));
     res.json({ success: true, ...result });
   } catch (error) {
     logger.error('Error importing leads from sheet:', error);
