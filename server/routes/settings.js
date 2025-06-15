@@ -6,7 +6,7 @@ const LeadDistributionService = require('../services/LeadDistributionService');
 const logger = require('../utils/logger');
 
 const settingsFile = path.join(__dirname, '../../settings.json');
-const importLogsFile = path.join(__dirname, '../../import-logs.json');
+const importLogsFile = process.env.RENDER ? '/tmp/import-logs.json' : path.join(__dirname, '../../import-logs.json');
 const leadDistributionService = new LeadDistributionService();
 
 // GET huidige sheet URL/ID
@@ -62,6 +62,9 @@ router.post('/sheet', (req, res) => {
 // GET: Haal de laatste 100 importlogs op
 router.get('/import-logs', (req, res) => {
   let logs = [];
+  if (!fs.existsSync(importLogsFile)) {
+    fs.writeFileSync(importLogsFile, '[]');
+  }
   if (fs.existsSync(importLogsFile)) {
     logs = JSON.parse(fs.readFileSync(importLogsFile, 'utf8'));
   }
@@ -75,6 +78,9 @@ router.post('/import-sheet-leads', async (req, res) => {
     const result = await leadDistributionService.importLeadsFromSelectedTabs({ sheetId, tabNames, branch, mapping });
     // Log importresultaat naar bestand
     let logs = [];
+    if (!fs.existsSync(importLogsFile)) {
+      fs.writeFileSync(importLogsFile, '[]');
+    }
     if (fs.existsSync(importLogsFile)) {
       logs = JSON.parse(fs.readFileSync(importLogsFile, 'utf8'));
     }
