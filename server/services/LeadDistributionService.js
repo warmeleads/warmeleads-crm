@@ -560,6 +560,8 @@ class LeadDistributionService {
     // Filter tabbladen op relevante branches
     const relevanteTabs = allSheetNames.filter(name => relevanteBranches.some(br => name.toLowerCase().includes(br.toLowerCase())));
     let totaalGeimporteerd = 0;
+    let totaalDuplicaten = 0;
+    let importDetails = [];
     for (const tabName of relevanteTabs) {
       // Metadata uit tabbladnaam
       const [sheetCustomerName, sheetBranche, sheetLocation] = tabName.split(',').map(s => s.trim());
@@ -580,7 +582,11 @@ class LeadDistributionService {
         }
         // Check of deze lead al bestaat
         const existing = await Lead.findOne({ where: { facebookLeadId } });
-        if (existing) continue;
+        if (existing) {
+          totaalDuplicaten++;
+          importDetails.push({ status: 'duplicate', facebookLeadId, tabName });
+          continue;
+        }
         // Maak leadData object
         const leadData = {};
         header.forEach((col, i) => { leadData[col] = row[i]; });
@@ -596,6 +602,7 @@ class LeadDistributionService {
         // Verdeel lead
         await this.distributeLead(leadData);
         totaalGeimporteerd++;
+        importDetails.push({ status: 'imported', facebookLeadId, tabName });
       }
     }
     logger.info(`Importresultaat: ${totaalGeimporteerd} leads aangemaakt, ${totaalDuplicaten} duplicaten, details:`, importDetails);
