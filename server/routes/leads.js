@@ -82,4 +82,16 @@ router.delete('/', async (req, res) => {
   }
 });
 
+// Haal de 20 meest recente leads als ruwe JSON op
+router.get('/raw', async (req, res) => {
+  try {
+    const { Lead } = require('../models');
+    const leads = await Lead.findAll({ order: [['createdAt', 'DESC']], limit: 20 });
+    res.json(leads.map(l => l.toJSON()));
+  } catch (error) {
+    logger.error('Error fetching raw leads:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router; 
