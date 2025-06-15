@@ -688,7 +688,7 @@ class LeadDistributionService {
         // Probeer lead aan te maken
         console.log('[IMPORT] Probeer lead aan te maken:', { leadData, tabName });
         try {
-          const createdLead = await Lead.create(leadData, { transaction });
+          const createdLead = await Lead.create(leadData);
           console.log('[IMPORT] Lead succesvol aangemaakt:', { id: createdLead.id, facebookLeadId, tabName });
           totaalGeimporteerd++;
           importDetails.push({ status: 'imported', facebookLeadId, tabName, warning: leadData.importWarning });
