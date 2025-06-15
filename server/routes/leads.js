@@ -48,32 +48,35 @@ router.get('/facebook-webhook', (req, res) => {
 // Haal alle leads op
 router.get('/', async (req, res) => {
   try {
-    logger.info('[LEADS API] GET /api/leads aangeroepen');
+    logger.apiLog('GET /api/leads aangeroepen');
     
     const { Lead, LeadType } = require('../models');
     
     // Log database connectie info
     const dbConfig = sequelize.config;
-    logger.info(`[LEADS API] Database connectie: ${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`);
+    logger.apiLog('Database connectie info', {
+      host: dbConfig.host,
+      port: dbConfig.port,
+      database: dbConfig.database
+    });
     
     // Eerst checken hoeveel leads er totaal zijn
     const totalCount = await Lead.count();
-    logger.info(`[LEADS API] Totaal aantal leads in database: ${totalCount}`);
+    logger.apiLog(`Totaal aantal leads in database: ${totalCount}`);
     
     // Haal alle leads op met LeadType info
-    logger.info('[LEADS API] Start ophalen leads met LeadType...');
+    logger.apiLog('Start ophalen leads met LeadType...');
     const leads = await Lead.findAll({ 
       include: [{ model: LeadType, attributes: ['name', 'displayName'] }],
       order: [['createdAt', 'DESC']]
     });
     
-    logger.info(`[LEADS API] Aantal leads opgehaald: ${leads.length}`);
+    logger.apiLog(`Aantal leads opgehaald: ${leads.length}`);
     
     // Log eerste paar leads voor debugging
     if (leads.length > 0) {
-      logger.info('[LEADS API] Eerste 3 leads:');
-      leads.slice(0, 3).forEach((lead, index) => {
-        logger.info(`[LEADS API] Lead ${index + 1}:`, {
+      logger.apiLog('Eerste 3 leads:', {
+        leads: leads.slice(0, 3).map(lead => ({
           id: lead.id,
           firstName: lead.firstName,
           lastName: lead.lastName,
@@ -82,22 +85,24 @@ router.get('/', async (req, res) => {
           leadTypeId: lead.leadTypeId,
           leadTypeName: lead.LeadType?.name,
           sheetBranche: lead.sheetBranche
-        });
+        }))
       });
     } else {
-      logger.warn('[LEADS API] GEEN LEADS GEVONDEN in database!');
+      logger.apiLog('GEEN LEADS GEVONDEN in database!');
     }
     
     // Converteer naar array en stuur response
     const leadsArray = Array.isArray(leads) ? leads : [];
-    logger.info(`[LEADS API] Response array lengte: ${leadsArray.length}`);
+    logger.apiLog(`Response array lengte: ${leadsArray.length}`);
     
     res.json(leadsArray);
-    logger.info('[LEADS API] Response succesvol verzonden');
+    logger.apiLog('Response succesvol verzonden');
     
   } catch (error) {
-    logger.error('[LEADS API] Error fetching leads:', error);
-    logger.error('[LEADS API] Error stack:', error.stack);
+    logger.apiLog('Error fetching leads', {
+      error: error.message,
+      stack: error.stack
+    });
     res.status(200).json([]);
   }
 });
@@ -198,6 +203,80 @@ router.get('/debug', async (req, res) => {
     
   } catch (error) {
     logger.error('[LEADS DEBUG] Error in debug endpoint:', error);
+    res.status(500).json({ 
+      error: error.message, 
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Endpoint om alle logs op te halen
+router.get('/logs', async (req, res) => {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    
+    // Bepaal log bestanden locatie
+    const logDir = process.env.RENDER ? '/tmp' : path.join(__dirname, '../../logs');
+    const debugLogFile = path.join(logDir, 'leads-debug.log');
+    const allLogsFile = path.join(logDir, 'all-logs.log');
+    
+    let logs = [];
+    
+    // Lees debug logs
+    if (fs.existsSync(debugLogFile)) {
+      const debugLogs = fs.readFileSync(debugLogFile, 'utf8')
+        .split('\n')
+        .filter(line => line.trim())
+        .map(line => {
+          try {
+            return JSON.parse(line);
+          } catch (e) {
+            return { raw: line, error: 'Invalid JSON' };
+          }
+        })
+        .filter(log => log.type && ['LEADS_DEBUG', 'IMPORT', 'API', 'FRONTEND'].includes(log.type));
+      
+      logs = logs.concat(debugLogs);
+    }
+    
+    // Lees alle logs (laatste 100 regels)
+    if (fs.existsSync(allLogsFile)) {
+      const allLogs = fs.readFileSync(allLogsFile, 'utf8')
+        .split('\n')
+        .filter(line => line.trim())
+        .slice(-100) // Laatste 100 regels
+        .map(line => {
+          try {
+            return JSON.parse(line);
+          } catch (e) {
+            return { raw: line, error: 'Invalid JSON' };
+          }
+        });
+      
+      logs = logs.concat(allLogs);
+    }
+    
+    // Sorteer op timestamp
+    logs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    
+    // Filter op laatste 24 uur
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    logs = logs.filter(log => new Date(log.timestamp) > oneDayAgo);
+    
+    res.json({
+      totalLogs: logs.length,
+      logs: logs,
+      logFiles: {
+        debugLogFile: fs.existsSync(debugLogFile) ? 'exists' : 'not found',
+        allLogsFile: fs.existsSync(allLogsFile) ? 'exists' : 'not found'
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    logger.error('[LEADS LOGS] Error reading logs:', error);
     res.status(500).json({ 
       error: error.message, 
       stack: error.stack,

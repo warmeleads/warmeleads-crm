@@ -1,52 +1,111 @@
 const winston = require('winston');
 const path = require('path');
 
-// Define log format
-const logFormat = winston.format.combine(
-  winston.format.timestamp({
-    format: 'YYYY-MM-DD HH:mm:ss'
-  }),
-  winston.format.errors({ stack: true }),
-  winston.format.json()
-);
+// Bepaal log bestanden locatie
+const logDir = process.env.RENDER ? '/tmp' : path.join(__dirname, '../../logs');
+const debugLogFile = path.join(logDir, 'leads-debug.log');
+const allLogsFile = path.join(logDir, 'all-logs.log');
 
-// Create logger instance
+// Maak logs directory als deze niet bestaat
+const fs = require('fs');
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
+
+// Winston logger configuratie
 const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: logFormat,
-  defaultMeta: { service: 'warmeleads-api' },
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp({
+      format: 'YYYY-MM-DD HH:mm:ss'
+    }),
+    winston.format.errors({ stack: true }),
+    winston.format.json()
+  ),
+  defaultMeta: { service: 'leads-system' },
   transports: [
-    // Write all logs with level 'error' and below to error.log
-    new winston.transports.File({
-      filename: path.join(__dirname, '../logs/error.log'),
-      level: 'error',
+    // Console output
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      )
+    }),
+    
+    // Alle logs naar één bestand
+    new winston.transports.File({ 
+      filename: allLogsFile,
       maxsize: 5242880, // 5MB
       maxFiles: 5
     }),
-    // Write all logs with level 'info' and below to combined.log
-    new winston.transports.File({
-      filename: path.join(__dirname, '../logs/combined.log'),
+    
+    // Specifieke debug logs voor leads
+    new winston.transports.File({ 
+      filename: debugLogFile,
+      level: 'debug',
       maxsize: 5242880, // 5MB
-      maxFiles: 5
+      maxFiles: 3
     })
   ]
 });
 
-// If we're not in production, log to the console as well
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple()
-    )
-  }));
-}
+// Helper functie voor leads-specifieke logging
+logger.leadsDebug = (message, data = {}) => {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    type: 'LEADS_DEBUG',
+    message,
+    data,
+    service: 'leads-system'
+  };
+  
+  // Log naar alle transports
+  logger.info(logEntry);
+  
+  // Schrijf ook naar een apart debug bestand voor leads
+  fs.appendFileSync(debugLogFile, JSON.stringify(logEntry) + '\n');
+};
 
-// Create logs directory if it doesn't exist
-const fs = require('fs');
-const logsDir = path.join(__dirname, '../logs');
-if (!fs.existsSync(logsDir)) {
-  fs.mkdirSync(logsDir, { recursive: true });
-}
+// Helper functie voor import logging
+logger.importLog = (message, data = {}) => {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    type: 'IMPORT',
+    message,
+    data,
+    service: 'leads-system'
+  };
+  
+  logger.info(logEntry);
+  fs.appendFileSync(debugLogFile, JSON.stringify(logEntry) + '\n');
+};
+
+// Helper functie voor API logging
+logger.apiLog = (message, data = {}) => {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    type: 'API',
+    message,
+    data,
+    service: 'leads-system'
+  };
+  
+  logger.info(logEntry);
+  fs.appendFileSync(debugLogFile, JSON.stringify(logEntry) + '\n');
+};
+
+// Helper functie voor frontend logging
+logger.frontendLog = (message, data = {}) => {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    type: 'FRONTEND',
+    message,
+    data,
+    service: 'leads-system'
+  };
+  
+  logger.info(logEntry);
+  fs.appendFileSync(debugLogFile, JSON.stringify(logEntry) + '\n');
+};
 
 module.exports = logger; 

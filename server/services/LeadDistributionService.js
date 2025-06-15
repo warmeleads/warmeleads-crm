@@ -539,7 +539,10 @@ class LeadDistributionService {
   async importNewLeadsFromSheet() {
     // Log database info bij import
     const dbConfig = require('../models').sequelize.config;
-    logger.info(`[IMPORT] Database host: ${dbConfig.host}, database: ${dbConfig.database}`);
+    logger.importLog('Database info bij import', {
+      host: dbConfig.host,
+      database: dbConfig.database
+    });
 
     // Haal sheetUrl uit settings.json
     const settingsFile = path.join(__dirname, '../../settings.json');
@@ -623,7 +626,10 @@ class LeadDistributionService {
   async importLeadsFromSelectedTabs({ sheetId, tabNames, branch, mapping }) {
     // Log database info bij import
     const dbConfig = require('../models').sequelize.config;
-    logger.info(`[IMPORT] Database host: ${dbConfig.host}, database: ${dbConfig.database}`);
+    logger.importLog('Database info bij import', {
+      host: dbConfig.host,
+      database: dbConfig.database
+    });
 
     if (!sheetId || !tabNames || !Array.isArray(tabNames) || tabNames.length === 0) {
       throw new Error('sheetId en tabNames zijn verplicht');
@@ -707,14 +713,22 @@ class LeadDistributionService {
         const leadType = await this.determineLeadType(leadData);
         leadData.leadTypeId = leadType.id;
         // Probeer lead aan te maken
-        console.log('[IMPORT] Probeer lead aan te maken:', { leadData, tabName });
+        logger.importLog('Probeer lead aan te maken', { leadData, tabName });
         try {
           const createdLead = await Lead.create(leadData);
-          console.log('[IMPORT] Lead succesvol aangemaakt:', { id: createdLead.id, facebookLeadId, tabName });
+          logger.importLog('Lead succesvol aangemaakt', { 
+            id: createdLead.id, 
+            facebookLeadId, 
+            tabName 
+          });
           totaalGeimporteerd++;
           importDetails.push({ status: 'imported', facebookLeadId, tabName, warning: leadData.importWarning });
         } catch (err) {
-          console.error('[IMPORT] Fout bij aanmaken lead:', { error: err.message, leadData, tabName });
+          logger.importLog('Fout bij aanmaken lead', { 
+            error: err.message, 
+            leadData, 
+            tabName 
+          });
           importDetails.push({ status: 'error', facebookLeadId, tabName, error: err.message });
           continue;
         }

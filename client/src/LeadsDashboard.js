@@ -8,6 +8,7 @@ import GroupIcon from '@mui/icons-material/Group';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import DeleteIcon from '@mui/icons-material/Delete';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'https://warmeleads-crm.onrender.com';
 
@@ -99,6 +100,9 @@ export default function LeadsDashboard() {
   const [leadToDelete, setLeadToDelete] = React.useState(null);
   const [activeTab, setActiveTab] = React.useState(0);
   const [debugMode, setDebugMode] = React.useState(false);
+  const [logsViewer, setLogsViewer] = React.useState(false);
+  const [logs, setLogs] = React.useState([]);
+  const [loadingLogs, setLoadingLogs] = React.useState(false);
 
   React.useEffect(() => {
     fetchLeads();
@@ -143,6 +147,19 @@ export default function LeadsDashboard() {
     } catch (error) {
       console.error('[FRONTEND] Error bij fetchLeads:', error);
       console.error('[FRONTEND] Error stack:', error.stack);
+    }
+  };
+
+  const fetchLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/leads/logs`);
+      const data = await res.json();
+      setLogs(data.logs || []);
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+    } finally {
+      setLoadingLogs(false);
     }
   };
 
@@ -303,6 +320,112 @@ export default function LeadsDashboard() {
         label="Debug modus: alle ruwe leads tonen"
         sx={{ mb: 2 }}
       />
+      
+      <FormControlLabel
+        control={<Switch checked={logsViewer} onChange={e => {
+          setLogsViewer(e.target.checked);
+          if (e.target.checked) {
+            fetchLogs();
+          }
+        }} color="secondary" />}
+        label="Logs Viewer: alle systeem logs bekijken"
+        sx={{ mb: 2, ml: 2 }}
+      />
+      
+      {logsViewer && (
+        <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 3, mb: 6 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, color: palette.accent }}>
+              Systeem Logs (Laatste 24 uur)
+            </Typography>
+            <Button 
+              variant="outlined" 
+              onClick={fetchLogs}
+              disabled={loadingLogs}
+              startIcon={<RefreshIcon />}
+            >
+              {loadingLogs ? 'Laden...' : 'Vernieuwen'}
+            </Button>
+          </Box>
+          
+          <Box sx={{ maxHeight: 600, overflow: 'auto' }}>
+            {logs.length === 0 ? (
+              <Typography sx={{ textAlign: 'center', color: 'text.secondary', py: 4 }}>
+                {loadingLogs ? 'Logs laden...' : 'Geen logs gevonden'}
+              </Typography>
+            ) : (
+              logs.map((log, index) => (
+                <Box 
+                  key={index} 
+                  sx={{ 
+                    p: 2, 
+                    mb: 1, 
+                    borderRadius: 2, 
+                    background: log.type === 'ERROR' ? '#fef2f2' : 
+                               log.type === 'IMPORT' ? '#f0f9ff' :
+                               log.type === 'API' ? '#f0fdf4' :
+                               log.type === 'FRONTEND' ? '#fefce8' : '#f8fafc',
+                    border: '1px solid',
+                    borderColor: log.type === 'ERROR' ? '#fecaca' : 
+                                log.type === 'IMPORT' ? '#bae6fd' :
+                                log.type === 'API' ? '#bbf7d0' :
+                                log.type === 'FRONTEND' ? '#fef08a' : '#e2e8f0'
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Typography variant="subtitle2" sx={{ 
+                      fontWeight: 700, 
+                      color: log.type === 'ERROR' ? '#dc2626' : 
+                             log.type === 'IMPORT' ? '#0284c7' :
+                             log.type === 'API' ? '#16a34a' :
+                             log.type === 'FRONTEND' ? '#ca8a04' : '#64748b'
+                    }}>
+                      {log.type || 'UNKNOWN'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      {new Date(log.timestamp).toLocaleString('nl-NL')}
+                    </Typography>
+                  </Box>
+                  
+                  <Typography variant="body2" sx={{ mb: 1, fontWeight: 500 }}>
+                    {log.message}
+                  </Typography>
+                  
+                  {log.data && Object.keys(log.data).length > 0 && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
+                        Data:
+                      </Typography>
+                      <Box sx={{ 
+                        mt: 0.5, 
+                        p: 1, 
+                        background: '#f8fafc', 
+                        borderRadius: 1, 
+                        fontFamily: 'monospace',
+                        fontSize: '0.75rem',
+                        maxHeight: 200,
+                        overflow: 'auto'
+                      }}>
+                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                          {JSON.stringify(log.data, null, 2)}
+                        </pre>
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
+              ))
+            )}
+          </Box>
+        </Paper>
+      )}
+
+      {/* Waarschuwing als er onbekende leads zijn */}
+      {groupedLeads.Overige.length > 0 && (
+        <Box sx={{ mb: 2, p: 2, background: '#fffbe0', borderRadius: 2, color: '#b45309', fontWeight: 700 }}>
+          Let op: Er zijn {groupedLeads.Overige.length} leads met een onbekende branche. Controleer de tabbladnamen in Google Sheets!
+        </Box>
+      )}
+
       {debugMode ? (
         <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'auto', mb: 6 }}>
           <TableContainer>
@@ -332,13 +455,6 @@ export default function LeadsDashboard() {
             <Tab key={type} label={type + ' Leads'} />
           ))}
         </Tabs>
-      )}
-
-      {/* Waarschuwing als er onbekende leads zijn */}
-      {groupedLeads.Overige.length > 0 && (
-        <Box sx={{ mb: 2, p: 2, background: '#fffbe0', borderRadius: 2, color: '#b45309', fontWeight: 700 }}>
-          Let op: Er zijn {groupedLeads.Overige.length} leads met een onbekende branche. Controleer de tabbladnamen in Google Sheets!
-        </Box>
       )}
 
       {LEAD_TYPES.map((type, idx) => (
