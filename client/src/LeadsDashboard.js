@@ -105,9 +105,45 @@ export default function LeadsDashboard() {
   }, []);
 
   const fetchLeads = async () => {
-    const res = await fetch(`${API_BASE}/api/leads`);
-    const data = await res.json();
-    setLeads(data);
+    console.log('[FRONTEND] Start fetchLeads...');
+    console.log('[FRONTEND] API_BASE:', API_BASE);
+    
+    try {
+      const res = await fetch(`${API_BASE}/api/leads`);
+      console.log('[FRONTEND] Response status:', res.status);
+      console.log('[FRONTEND] Response headers:', Object.fromEntries(res.headers.entries()));
+      
+      const data = await res.json();
+      console.log('[FRONTEND] Response data type:', typeof data);
+      console.log('[FRONTEND] Response data is array:', Array.isArray(data));
+      console.log('[FRONTEND] Response data length:', data?.length);
+      
+      if (Array.isArray(data) && data.length > 0) {
+        console.log('[FRONTEND] Eerste 3 leads uit response:');
+        data.slice(0, 3).forEach((lead, index) => {
+          console.log(`[FRONTEND] Lead ${index + 1}:`, {
+            id: lead.id,
+            firstName: lead.firstName,
+            lastName: lead.lastName,
+            email: lead.email,
+            createdAt: lead.createdAt,
+            leadTypeId: lead.leadTypeId,
+            sheetBranche: lead.sheetBranche,
+            LeadType: lead.LeadType
+          });
+        });
+      } else {
+        console.warn('[FRONTEND] GEEN LEADS ONTVANGEN van API!');
+        console.log('[FRONTEND] Volledige response data:', data);
+      }
+      
+      setLeads(data);
+      console.log('[FRONTEND] Leads state gezet, nieuwe lengte:', data?.length);
+      
+    } catch (error) {
+      console.error('[FRONTEND] Error bij fetchLeads:', error);
+      console.error('[FRONTEND] Error stack:', error.stack);
+    }
   };
 
   const handleDeleteLead = async (id) => {

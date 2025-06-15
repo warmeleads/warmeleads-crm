@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const LeadDistributionService = require('../services/LeadDistributionService');
 const logger = require('../utils/logger');
+const { sequelize } = require('../models');
 
 const leadDistributionService = new LeadDistributionService();
 
@@ -47,11 +48,56 @@ router.get('/facebook-webhook', (req, res) => {
 // Haal alle leads op
 router.get('/', async (req, res) => {
   try {
+    logger.info('[LEADS API] GET /api/leads aangeroepen');
+    
     const { Lead, LeadType } = require('../models');
-    const leads = await Lead.findAll({ include: [{ model: LeadType, attributes: ['name', 'displayName'] }] });
-    res.json(Array.isArray(leads) ? leads : []);
+    
+    // Log database connectie info
+    const dbConfig = sequelize.config;
+    logger.info(`[LEADS API] Database connectie: ${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`);
+    
+    // Eerst checken hoeveel leads er totaal zijn
+    const totalCount = await Lead.count();
+    logger.info(`[LEADS API] Totaal aantal leads in database: ${totalCount}`);
+    
+    // Haal alle leads op met LeadType info
+    logger.info('[LEADS API] Start ophalen leads met LeadType...');
+    const leads = await Lead.findAll({ 
+      include: [{ model: LeadType, attributes: ['name', 'displayName'] }],
+      order: [['createdAt', 'DESC']]
+    });
+    
+    logger.info(`[LEADS API] Aantal leads opgehaald: ${leads.length}`);
+    
+    // Log eerste paar leads voor debugging
+    if (leads.length > 0) {
+      logger.info('[LEADS API] Eerste 3 leads:');
+      leads.slice(0, 3).forEach((lead, index) => {
+        logger.info(`[LEADS API] Lead ${index + 1}:`, {
+          id: lead.id,
+          firstName: lead.firstName,
+          lastName: lead.lastName,
+          email: lead.email,
+          createdAt: lead.createdAt,
+          leadTypeId: lead.leadTypeId,
+          leadTypeName: lead.LeadType?.name,
+          sheetBranche: lead.sheetBranche
+        });
+      });
+    } else {
+      logger.warn('[LEADS API] GEEN LEADS GEVONDEN in database!');
+    }
+    
+    // Converteer naar array en stuur response
+    const leadsArray = Array.isArray(leads) ? leads : [];
+    logger.info(`[LEADS API] Response array lengte: ${leadsArray.length}`);
+    
+    res.json(leadsArray);
+    logger.info('[LEADS API] Response succesvol verzonden');
+    
   } catch (error) {
-    logger.error('Error fetching leads:', error);
+    logger.error('[LEADS API] Error fetching leads:', error);
+    logger.error('[LEADS API] Error stack:', error.stack);
     res.status(200).json([]);
   }
 });
@@ -91,6 +137,72 @@ router.get('/raw', async (req, res) => {
   } catch (error) {
     logger.error('Error fetching raw leads:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Debug endpoint voor database info
+router.get('/debug', async (req, res) => {
+  try {
+    logger.info('[LEADS DEBUG] Debug endpoint aangeroepen');
+    
+    const { Lead, LeadType } = require('../models');
+    const dbConfig = sequelize.config;
+    
+    // Database connectie info
+    const dbInfo = {
+      host: dbConfig.host,
+      port: dbConfig.port,
+      database: dbConfig.database,
+      dialect: dbConfig.dialect,
+      timezone: dbConfig.timezone
+    };
+    
+    // Test database connectie
+    await sequelize.authenticate();
+    const connectionOk = true;
+    
+    // Tabel informatie
+    const leadCount = await Lead.count();
+    const leadTypeCount = await LeadType.count();
+    
+    // Laatste 5 leads
+    const recentLeads = await Lead.findAll({
+      order: [['createdAt', 'DESC']],
+      limit: 5,
+      attributes: ['id', 'firstName', 'lastName', 'email', 'createdAt', 'leadTypeId', 'sheetBranche']
+    });
+    
+    // Lead types
+    const leadTypes = await LeadType.findAll({
+      attributes: ['id', 'name', 'displayName', 'category']
+    });
+    
+    const debugInfo = {
+      database: dbInfo,
+      connection: connectionOk,
+      tables: {
+        leads: {
+          count: leadCount,
+          recent: recentLeads.map(l => l.toJSON())
+        },
+        leadTypes: {
+          count: leadTypeCount,
+          types: leadTypes.map(lt => lt.toJSON())
+        }
+      },
+      timestamp: new Date().toISOString()
+    };
+    
+    logger.info('[LEADS DEBUG] Debug info:', debugInfo);
+    res.json(debugInfo);
+    
+  } catch (error) {
+    logger.error('[LEADS DEBUG] Error in debug endpoint:', error);
+    res.status(500).json({ 
+      error: error.message, 
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
   }
 });
 
