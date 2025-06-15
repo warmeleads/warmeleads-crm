@@ -599,6 +599,9 @@ class LeadDistributionService {
         leadData.phoneValid = /^((\+31|0)[1-9][0-9]{8})$|^(\+32|0)[1-9][0-9]{7,8}$/.test(leadData.phone || '');
         // Validatie: e-mail
         leadData.emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(leadData.email || '');
+        // Voeg leadTypeId toe aan leadData
+        const leadType = await this.determineLeadType(leadData);
+        leadData.leadTypeId = leadType.id;
         // Verdeel lead
         await this.distributeLead(leadData);
         totaalGeimporteerd++;
@@ -692,6 +695,9 @@ class LeadDistributionService {
         leadData.phoneValid = /^((\+31|0)[1-9][0-9]{8})$|^(\+32|0)[1-9][0-9]{7,8}$/.test(leadData.phone || '');
         // Validatie: e-mail
         leadData.emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(leadData.email || '');
+        // Voeg leadTypeId toe aan leadData
+        const leadType = await this.determineLeadType(leadData);
+        leadData.leadTypeId = leadType.id;
         // Probeer lead aan te maken
         console.log('[IMPORT] Probeer lead aan te maken:', { leadData, tabName });
         try {
