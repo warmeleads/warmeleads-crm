@@ -537,6 +537,10 @@ class LeadDistributionService {
    * (categorisatie op klant, branche, locatie; validatie en deduplicatie)
    */
   async importNewLeadsFromSheet() {
+    // Log database info bij import
+    const dbConfig = require('../models').sequelize.config;
+    logger.info(`[IMPORT] Database host: ${dbConfig.host}, database: ${dbConfig.database}`);
+
     // Haal sheetUrl uit settings.json
     const settingsFile = path.join(__dirname, '../../settings.json');
     if (!fs.existsSync(settingsFile)) {
@@ -617,6 +621,10 @@ class LeadDistributionService {
    * @param {Object} opts - { sheetId, tabNames, branch, mapping }
    */
   async importLeadsFromSelectedTabs({ sheetId, tabNames, branch, mapping }) {
+    // Log database info bij import
+    const dbConfig = require('../models').sequelize.config;
+    logger.info(`[IMPORT] Database host: ${dbConfig.host}, database: ${dbConfig.database}`);
+
     if (!sheetId || !tabNames || !Array.isArray(tabNames) || tabNames.length === 0) {
       throw new Error('sheetId en tabNames zijn verplicht');
     }
