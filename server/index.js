@@ -185,6 +185,14 @@ async function startServer() {
     
     new GoogleSheetsService();
     
+    const RENDER_DB_HOST = 'dpg-d16oepemcj7s73cd84sg-a';
+    if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.includes(RENDER_DB_HOST)) {
+      console.warn('⚠️  WAARSCHUWING: Je bent NIET verbonden met de Render database!');
+      console.warn('Controleer je .env en environment variables.');
+    } else {
+      console.log('✅ Verbonden met de Render database.');
+    }
+    
     const server = app.listen(PORT, () => {
       logger.info(`Server running on port ${PORT}`);
       console.log('============================================================');
