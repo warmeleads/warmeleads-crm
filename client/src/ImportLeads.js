@@ -80,6 +80,73 @@ const branchLeadFields = {
   ]
 };
 
+// Normaliseer kolomnamen voor fuzzy matching
+const normalizeColumnName = (name) => {
+  if (!name) return '';
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '') // Verwijder alle niet-alfanumerieke karakters
+    .replace(/[éèë]/g, 'e')    // Normaliseer accenten
+    .replace(/[àáâä]/g, 'a')
+    .replace(/[ïî]/g, 'i')
+    .replace(/[öô]/g, 'o')
+    .replace(/[üû]/g, 'u');
+};
+
+// Database velden die beschikbaar zijn voor mapping
+const databaseFields = [
+  { value: 'firstName', label: 'Voornaam', normalized: 'firstname' },
+  { value: 'lastName', label: 'Achternaam', normalized: 'lastname' },
+  { value: 'email', label: 'E-mail', normalized: 'email' },
+  { value: 'phone', label: 'Telefoon', normalized: 'telefoon' },
+  { value: 'address', label: 'Adres', normalized: 'adres' },
+  { value: 'city', label: 'Plaats', normalized: 'plaats' },
+  { value: 'postalCode', label: 'Postcode', normalized: 'postcode' },
+  { value: 'country', label: 'Land', normalized: 'land' },
+  { value: 'createdAt', label: 'Datum interesse', normalized: 'datuminteresse' },
+  { value: 'propertyType', label: 'Woningtype', normalized: 'woningtype' },
+  { value: 'propertySize', label: 'Woonoppervlakte', normalized: 'woonoppervlakte' },
+  { value: 'energyLabel', label: 'Energielabel', normalized: 'energielabel' },
+  { value: 'budget', label: 'Budget', normalized: 'budget' },
+  { value: 'timeline', label: 'Tijdspad', normalized: 'tijdspad' },
+  { value: 'additionalInfo', label: 'Opmerkingen', normalized: 'opmerkingen' },
+  { value: 'leadQuality', label: 'Leadkwaliteit', normalized: 'leadkwaliteit' },
+];
+
+// Automatische mapping functie
+const getAutoMapping = (columnName, branch) => {
+  const normalizedColumn = normalizeColumnName(columnName);
+  
+  // Specifieke mapping voor "Naam klant" kolom
+  if (normalizedColumn.includes('naam') && normalizedColumn.includes('klant')) {
+    return 'firstName'; // Map naar firstName, lastName wordt later afgehandeld
+  }
+  
+  // Specifieke mapping voor datum kolommen
+  if (normalizedColumn.includes('datum') && normalizedColumn.includes('interesse')) {
+    return 'createdAt';
+  }
+  
+  // Zoek exacte match in database velden
+  const exactMatch = databaseFields.find(field => 
+    field.normalized === normalizedColumn
+  );
+  if (exactMatch) {
+    return exactMatch.value;
+  }
+  
+  // Zoek gedeeltelijke matches
+  const partialMatch = databaseFields.find(field => 
+    normalizedColumn.includes(field.normalized) || 
+    field.normalized.includes(normalizedColumn)
+  );
+  if (partialMatch) {
+    return partialMatch.value;
+  }
+  
+  return ''; // Geen automatische mapping gevonden
+};
+
 function ImportLeads() {
   const [step, setStep] = useState(1);
   const [sheetUrl, setSheetUrl] = useState('');
@@ -149,6 +216,24 @@ function ImportLeads() {
   const handleStartMapping = () => {
     setWizardIndex(0);
     setWizardActive(true);
+    
+    // Automatische mapping voorstellen
+    const autoMappings = {};
+    selectedTabs.forEach(tabName => {
+      const tab = tabs.find(t => t.name === tabName);
+      if (tab && tab.columns) {
+        autoMappings[tabName] = {};
+        tab.columns.forEach(column => {
+          const autoMapping = getAutoMapping(column, branch);
+          autoMappings[tabName][column] = {
+            enabled: !!autoMapping, // Automatisch aanvinken als er een mapping is
+            mappedTo: autoMapping
+          };
+        });
+      }
+    });
+    
+    setTabMappings(autoMappings);
   };
 
   const handleMappingChange = (tab, col, field, value) => {
@@ -307,7 +392,7 @@ function ImportLeads() {
                       sx={{ minWidth: 160 }}
                     >
                       <MenuItem value=""><em>Niet mappen</em></MenuItem>
-                      {(branchLeadFields[getBranchFromTab(filteredTabs[wizardIndex].name)] || []).map(f => (
+                      {databaseFields.map(f => (
                         <MenuItem key={f.value} value={f.value}>{f.label}</MenuItem>
                       ))}
                     </Select>
