@@ -41,49 +41,40 @@ function stringAvatar(name) {
 // Kolommen per branche/type
 const LEAD_TYPE_COLUMNS = {
   Thuisbatterij: [
-    { key: 'naamKlant', label: 'Naam klant' },
-    { key: 'datumInteresse', label: 'Datum interesse klant' },
-    { key: 'postcode', label: 'Postcode' },
-    { key: 'plaatsnaam', label: 'Plaatsnaam' },
-    { key: 'telefoonnummer', label: 'Telefoonnummer' },
+    { key: 'firstName', label: 'Voornaam' },
+    { key: 'lastName', label: 'Achternaam' },
     { key: 'email', label: 'E-mail' },
-    { key: 'zonnepanelen', label: 'Zonnepanelen' },
-    { key: 'dynamischContract', label: 'Dynamisch contract' },
-    { key: 'stroomverbruik', label: 'Stroomverbruik' },
-    { key: 'budget', label: 'Budget' },
-    { key: 'redenThuisbatterij', label: 'Reden Thuisbatterij' },
+    { key: 'phone', label: 'Telefoonnummer' },
+    { key: 'address', label: 'Adres' },
+    { key: 'city', label: 'Plaatsnaam' },
+    { key: 'postalCode', label: 'Postcode' },
+    { key: 'sheetBranche', label: 'Branche' },
+    { key: 'leadTypeName', label: 'Lead Type' },
+    { key: 'createdAt', label: 'Aangemaakt' },
   ],
   Airco: [
-    { key: 'naamKlant', label: 'Naam klant' },
-    { key: 'datumInteresse', label: 'Datum interesse klant' },
-    { key: 'postcode', label: 'Postcode' },
-    { key: 'huisnummer', label: 'Huisnummer' },
-    { key: 'plaatsnaam', label: 'Plaatsnaam' },
-    { key: 'telefoonnummer', label: 'Telefoonnummer' },
+    { key: 'firstName', label: 'Voornaam' },
+    { key: 'lastName', label: 'Achternaam' },
     { key: 'email', label: 'E-mail' },
-    { key: 'typeAirco', label: 'Type airco' },
-    { key: 'koelenVerwarmen', label: 'Koelen/verwarmen?' },
-    { key: 'hoeveelRuimtes', label: 'Hoeveel ruimtes?' },
-    { key: 'zakelijk', label: 'Zakelijk?' },
-    { key: 'koopOfHuur', label: 'Koop of huur?' },
-    { key: 'boorwerkzaamheden', label: 'Boorwerkzaamheden toegestaan?' },
+    { key: 'phone', label: 'Telefoonnummer' },
+    { key: 'address', label: 'Adres' },
+    { key: 'city', label: 'Plaatsnaam' },
+    { key: 'postalCode', label: 'Postcode' },
+    { key: 'sheetBranche', label: 'Branche' },
+    { key: 'leadTypeName', label: 'Lead Type' },
+    { key: 'createdAt', label: 'Aangemaakt' },
   ],
   'GZ Accu': [
-    { key: 'naamKlant', label: 'Naam klant' },
-    { key: 'datum', label: 'Datum' },
-    { key: 'postcode', label: 'Postcode' },
-    { key: 'huisnummer', label: 'Huisnummer' },
-    { key: 'plaatsnaam', label: 'Plaatsnaam' },
-    { key: 'afstand', label: 'Afstand' },
-    { key: 'binnenGebied', label: 'Binnen gebied?' },
-    { key: 'verwerkt', label: 'Verwerkt?' },
-    { key: 'geexporteerd', label: 'Geëxporteerd?' },
-    { key: 'telefoonnummer', label: 'Telefoonnummer' },
+    { key: 'firstName', label: 'Voornaam' },
+    { key: 'lastName', label: 'Achternaam' },
     { key: 'email', label: 'E-mail' },
-    { key: 'meerDan75000', label: 'Meer dan 75.000 kWh per jaar?' },
-    { key: 'zonnepanelen', label: 'Zonnepanelen?' },
-    { key: 'hoeveelKwh', label: 'Hoeveel kWh opwekking?' },
-    { key: 'redenAccu', label: 'Reden Accu' },
+    { key: 'phone', label: 'Telefoonnummer' },
+    { key: 'address', label: 'Adres' },
+    { key: 'city', label: 'Plaatsnaam' },
+    { key: 'postalCode', label: 'Postcode' },
+    { key: 'sheetBranche', label: 'Branche' },
+    { key: 'leadTypeName', label: 'Lead Type' },
+    { key: 'createdAt', label: 'Aangemaakt' },
   ]
 };
 
@@ -475,7 +466,11 @@ export default function LeadsDashboard() {
                     {groupedLeads[type].map(lead => (
                       <TableRow key={lead.id} hover>
                         {(LEAD_TYPE_COLUMNS[type] || Object.keys(lead).map(k => ({ key: k, label: k }))).map(col => (
-                          <TableCell key={col.key}>{lead[col.key] || ''}</TableCell>
+                          <TableCell key={col.key}>
+                            {col.key === 'createdAt' && lead[col.key] 
+                              ? new Date(lead[col.key]).toLocaleString('nl-NL')
+                              : lead[col.key] || ''}
+                          </TableCell>
                         ))}
                         <TableCell align="center">
                           <IconButton color="primary" size="small" title="Kopieer lead ID">
@@ -503,21 +498,21 @@ export default function LeadsDashboard() {
         {selectedLead && (
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <Avatar {...stringAvatar(selectedLead.name)} sx={{ width: 48, height: 48, fontSize: 24 }} />
+              <Avatar {...stringAvatar(`${selectedLead.firstName} ${selectedLead.lastName}`)} sx={{ width: 48, height: 48, fontSize: 24 }} />
               <Box>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: palette.accent }}>{selectedLead.name}</Typography>
+                <Typography variant="h5" sx={{ fontWeight: 800, color: palette.accent }}>{`${selectedLead.firstName} ${selectedLead.lastName}`}</Typography>
                 <Typography variant="body2" sx={{ color: palette.text }}>{selectedLead.email}</Typography>
               </Box>
             </Box>
             <Divider sx={{ mb: 2 }} />
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Telefoon: <b>{selectedLead.phone}</b></Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Locatie: <b>{selectedLead.location}</b></Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Branche: <b>{selectedLead.branche}</b></Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Aangemaakt: <b>{selectedLead.createdAt}</b></Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Validatie: {selectedLead.valid ? <Chip label="Geldig" sx={{ background: palette.accent2, color: '#fff', fontWeight: 700 }} size="small" /> : <Chip label="Ongeldig" sx={{ background: '#f59e42', color: '#fff', fontWeight: 700 }} size="small" />}</Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Duplicaat: {selectedLead.duplicate ? <Chip label="Duplicaat" sx={{ background: palette.accent, color: '#fff', fontWeight: 700 }} size="small" /> : <Chip label="Uniek" sx={{ background: palette.accent3, color: '#fff', fontWeight: 700 }} size="small" />}</Typography>
-            <Divider sx={{ my: 2 }} />
-            <Typography variant="body1" sx={{ color: palette.text, fontStyle: 'italic', opacity: 0.8 }}>{selectedLead.notes}</Typography>
+            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Telefoon: <b>{selectedLead.phone || 'Niet opgegeven'}</b></Typography>
+            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Adres: <b>{selectedLead.address || 'Niet opgegeven'}</b></Typography>
+            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Plaats: <b>{selectedLead.city || 'Niet opgegeven'}</b></Typography>
+            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Postcode: <b>{selectedLead.postalCode || 'Niet opgegeven'}</b></Typography>
+            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Branche: <b>{selectedLead.sheetBranche}</b></Typography>
+            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Lead Type: <b>{selectedLead.leadTypeName}</b></Typography>
+            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Aangemaakt: <b>{selectedLead.createdAt ? new Date(selectedLead.createdAt).toLocaleString('nl-NL') : 'Onbekend'}</b></Typography>
+            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Lead ID: <b>{selectedLead.id}</b></Typography>
           </Box>
         )}
       </Drawer>
