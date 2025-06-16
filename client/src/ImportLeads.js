@@ -134,6 +134,15 @@ const getAutoMapping = (columnName, branch, tabName) => {
   return '';
 };
 
+// In de mapping-wizard: bepaal branche uit tabbladnaam
+const getBranchFromTab = (tabName) => {
+  if (!tabName) return '';
+  if (tabName.toLowerCase().includes('thuisbatterij')) return 'Thuisbatterij';
+  if (tabName.toLowerCase().includes('airco')) return 'Airco';
+  if (tabName.toLowerCase().includes('gz accu')) return 'GZ Accu';
+  return '';
+};
+
 function ImportLeads() {
   const [step, setStep] = useState(1);
   const [sheetUrl, setSheetUrl] = useState('');
@@ -266,15 +275,6 @@ function ImportLeads() {
     if (wizardIndex > 0) {
       setWizardIndex(wizardIndex - 1);
     }
-  };
-
-  // In de mapping-wizard: bepaal branche uit tabbladnaam
-  const getBranchFromTab = (tabName) => {
-    if (!tabName) return '';
-    if (tabName.toLowerCase().includes('thuisbatterij')) return 'Thuisbatterij';
-    if (tabName.toLowerCase().includes('airco')) return 'Airco';
-    if (tabName.toLowerCase().includes('gz accu')) return 'GZ Accu';
-    return '';
   };
 
   return (
