@@ -113,38 +113,25 @@ const databaseFields = [
   { value: 'leadQuality', label: 'Leadkwaliteit', normalized: 'leadkwaliteit' },
 ];
 
-// Automatische mapping functie
-const getAutoMapping = (columnName, branch) => {
+// Nieuwe automatische mapping functie die alleen branchLeadFields gebruikt
+const getAutoMapping = (columnName, branch, tabName) => {
   const normalizedColumn = normalizeColumnName(columnName);
-  
-  // Specifieke mapping voor "Naam klant" kolom
-  if (normalizedColumn.includes('naam') && normalizedColumn.includes('klant')) {
-    return 'firstName'; // Map naar firstName, lastName wordt later afgehandeld
-  }
-  
-  // Specifieke mapping voor datum kolommen
-  if (normalizedColumn.includes('datum') && normalizedColumn.includes('interesse')) {
-    return 'createdAt';
-  }
-  
-  // Zoek exacte match in database velden
-  const exactMatch = databaseFields.find(field => 
-    field.normalized === normalizedColumn
-  );
+  const branchFields = branchLeadFields[getBranchFromTab(tabName)] || [];
+
+  // Zoek exacte match in branch fields
+  const exactMatch = branchFields.find(field => normalizeColumnName(field.label) === normalizedColumn);
   if (exactMatch) {
     return exactMatch.value;
   }
-  
   // Zoek gedeeltelijke matches
-  const partialMatch = databaseFields.find(field => 
-    normalizedColumn.includes(field.normalized) || 
-    field.normalized.includes(normalizedColumn)
+  const partialMatch = branchFields.find(field =>
+    normalizeColumnName(field.label).includes(normalizedColumn) ||
+    normalizedColumn.includes(normalizeColumnName(field.label))
   );
   if (partialMatch) {
     return partialMatch.value;
   }
-  
-  return ''; // Geen automatische mapping gevonden
+  return '';
 };
 
 function ImportLeads() {
@@ -216,7 +203,6 @@ function ImportLeads() {
   const handleStartMapping = () => {
     setWizardIndex(0);
     setWizardActive(true);
-    
     // Automatische mapping voorstellen
     const autoMappings = {};
     selectedTabs.forEach(tabName => {
@@ -224,15 +210,14 @@ function ImportLeads() {
       if (tab && tab.columns) {
         autoMappings[tabName] = {};
         tab.columns.forEach(column => {
-          const autoMapping = getAutoMapping(column, branch);
+          const autoMapping = getAutoMapping(column, branch, tabName);
           autoMappings[tabName][column] = {
-            enabled: !!autoMapping, // Automatisch aanvinken als er een mapping is
+            enabled: !!autoMapping,
             mappedTo: autoMapping
           };
         });
       }
     });
-    
     setTabMappings(autoMappings);
   };
 
@@ -392,7 +377,7 @@ function ImportLeads() {
                       sx={{ minWidth: 160 }}
                     >
                       <MenuItem value=""><em>Niet mappen</em></MenuItem>
-                      {databaseFields.map(f => (
+                      {(branchLeadFields[getBranchFromTab(filteredTabs[wizardIndex].name)] || []).map(f => (
                         <MenuItem key={f.value} value={f.value}>{f.label}</MenuItem>
                       ))}
                     </Select>
