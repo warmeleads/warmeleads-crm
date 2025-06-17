@@ -317,4 +317,44 @@ router.get('/logs', async (req, res) => {
   }
 });
 
+// Endpoint: Haal de laatst geïmporteerde leads als sheet-tabel (originele kolommen, gemapte waarden)
+router.get('/sheet', async (req, res) => {
+  try {
+    const branch = req.query.branch;
+    if (!branch) return res.status(400).json({ error: 'branch query param verplicht' });
+    const fs = require('fs');
+    const path = require('path');
+    const importLogsFile = process.env.RENDER ? '/tmp/import-logs.json' : path.join(__dirname, '../../import-logs.json');
+    let logs = [];
+    if (fs.existsSync(importLogsFile)) {
+      logs = JSON.parse(fs.readFileSync(importLogsFile, 'utf8'));
+    }
+    // Zoek de meest recente relevante logregel
+    const match = logs.reverse().find(log =>
+      log.message === 'Ruwe sheetdata van tabblad geïmporteerd' &&
+      log.data &&
+      log.data.tabName &&
+      log.data.tabName.toLowerCase().includes(branch.toLowerCase())
+    );
+    if (!match) return res.status(404).json({ error: 'Geen ruwe sheetdata gevonden voor deze branche' });
+    const header = match.data.header;
+    const previewRows = match.data.previewRows;
+    // Maak per rij een object { kolomnaam: waarde }
+    const leads = previewRows.map(rowArr => {
+      const obj = {};
+      header.forEach((col, i) => { obj[col] = rowArr[i]; });
+      return obj;
+    });
+    res.json({
+      header,
+      leads,
+      tabName: match.data.tabName,
+      timestamp: match.timestamp
+    });
+  } catch (error) {
+    logger.error('Error in /api/leads/sheet endpoint:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router; 
