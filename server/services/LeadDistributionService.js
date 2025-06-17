@@ -683,7 +683,7 @@ class LeadDistributionService {
               leadData[mapObj.mappedTo] = row[sheetCol];
             }
           });
-          // Vul ALLEEN de gemapte kolommen, laat alle andere vaste kolommen leeg
+          // Vul alleen de gemapte kolommen, geen enkele standaardwaarde voor vaste kolommen
         } else {
           // Mapping per branche (fallback)
           const brancheMapping = leadMappings[sheetBranche] || {};
@@ -707,29 +707,10 @@ class LeadDistributionService {
         }
         // Mapping & defaults voor verplichte velden
         leadData.facebookLeadId = facebookLeadId;
-        leadData.facebookAdId = row['Facebook Ad ID'] || 'unknown';
-        leadData.facebookCampaignId = row['Facebook Campaign ID'] || 'unknown';
         leadData.sheetTabName = tabName;
         leadData.sheetCustomerName = sheetCustomerName;
         leadData.sheetBranche = sheetBranche;
         leadData.sheetLocation = sheetLocation;
-        // Extra validatie: sheetBranche leeg of onbekend
-        const brancheNorm = (sheetBranche || '').toLowerCase();
-        if (!brancheNorm || (!brancheNorm.includes('thuisbatterij') && !brancheNorm.includes('airco') && !brancheNorm.includes('gz accu'))) {
-          logger.warn(`Onbekende of lege branche in tabbladnaam: ${tabName}`);
-          leadData.importWarning = `Onbekende of lege branche in tabbladnaam: ${tabName}`;
-        }
-        // Verplichte velden fallback
-        if (!leadData.country) leadData.country = 'Netherlands';
-        if (!leadData.latitude) leadData.latitude = 0;
-        if (!leadData.longitude) leadData.longitude = 0;
-        if (!leadData.firstName) leadData.firstName = 'Onbekend';
-        if (!leadData.lastName) leadData.lastName = 'Onbekend';
-        if (!leadData.city) leadData.city = 'Onbekend';
-        // Validatie: telefoonnummer NL/BE
-        leadData.phoneValid = /^((\+31|0)[1-9][0-9]{8})$|^(\+32|0)[1-9][0-9]{7,8}$/.test(leadData.phone || '');
-        // Validatie: e-mail
-        leadData.emailValid = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(leadData.email || '');
         // Voeg leadTypeId toe aan leadData
         const leadType = await this.determineLeadType(leadData);
         leadData.leadTypeId = leadType.id;
