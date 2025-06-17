@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, Typography, TextField, Select, MenuItem, Checkbox, List, ListItem, ListItemText, ListItemIcon, FormControl, InputLabel, CircularProgress, Alert, Card, CardContent, FormControlLabel, Fade, Stack, useMediaQuery } from '@mui/material';
+import { Box, Button, Typography, TextField, Select, MenuItem, Checkbox, List, ListItem, ListItemText, ListItemIcon, FormControl, InputLabel, CircularProgress, Alert, Card, CardContent, FormControlLabel, Fade, Stack, useMediaQuery, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'https://warmeleads-crm.onrender.com';
 
@@ -158,6 +158,7 @@ function ImportLeads() {
   const [wizardIndex, setWizardIndex] = useState(0);
   const [wizardActive, setWizardActive] = useState(false);
   const isMobile = useMediaQuery('(max-width:600px)');
+  const [previewRows, setPreviewRows] = useState({});
 
   // Extract sheetId from URL or use as-is
   const extractSheetId = (url) => {
@@ -278,6 +279,25 @@ function ImportLeads() {
     }
   };
 
+  // Haal preview data op voor een tabblad
+  const fetchPreviewRows = async (tabName) => {
+    if (previewRows[tabName]) return; // al opgehaald
+    try {
+      const res = await fetch(`${API_BASE}/api/settings/sheet-preview?sheetId=${sheetId}&tabName=${encodeURIComponent(tabName)}&limit=3`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setPreviewRows(prev => ({ ...prev, [tabName]: data.rows || [] }));
+    } catch {}
+  };
+
+  // Haal preview op als mapping-wizard start voor een tabblad
+  React.useEffect(() => {
+    if (step === 2 && wizardActive && filteredTabs[wizardIndex]) {
+      fetchPreviewRows(filteredTabs[wizardIndex].name);
+    }
+    // eslint-disable-next-line
+  }, [step, wizardActive, wizardIndex]);
+
   return (
     <Box maxWidth={700} mx="auto" mt={isMobile ? 1 : 4} px={isMobile ? 0.5 : 2}>
       <Typography variant={isMobile ? "h5" : "h4"} fontWeight={900} mb={isMobile ? 2 : 3} color="#6366f1">Leads importeren uit Google Sheets</Typography>
@@ -359,6 +379,32 @@ function ImportLeads() {
         <Fade in timeout={500}>
           <Box>
             <Typography variant={isMobile ? "h6" : "h5"} sx={{ mb: isMobile ? 1 : 2, fontWeight: 700, color: '#06b6d4' }}>Tabblad {wizardIndex + 1} van {filteredTabs.length}: <b>{filteredTabs[wizardIndex].name}</b></Typography>
+            {/* Preview van sheetdata */}
+            {previewRows[filteredTabs[wizardIndex].name] && previewRows[filteredTabs[wizardIndex].name].length > 0 && (
+              <Paper sx={{ mb: 2, p: 1, background: '#f8fafc', borderRadius: 2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, color: '#6366f1', fontWeight: 700 }}>Voorbeeld data uit Google Sheet:</Typography>
+                <TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        {filteredTabs[wizardIndex].columns.map(col => (
+                          <TableCell key={col} sx={{ fontWeight: 700 }}>{col}</TableCell>
+                        ))}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {previewRows[filteredTabs[wizardIndex].name].map((row, i) => (
+                        <TableRow key={i}>
+                          {filteredTabs[wizardIndex].columns.map(col => (
+                            <TableCell key={col}>{row[col] ?? ''}</TableCell>
+                          ))}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Paper>
+            )}
             <Card elevation={3} sx={{ borderRadius: 4, mb: isMobile ? 1 : 2 }}>
               <CardContent>
                 {filteredTabs[wizardIndex].columns.length === 0 && <Typography color="text.secondary">Geen kolommen gevonden.</Typography>}
