@@ -105,9 +105,22 @@ router.get('/', async (req, res) => {
     
     // Converteer naar array en stuur response
     const leadsArray = Array.isArray(leads) ? leads : [];
-    logger.apiLog(`Response array lengte: ${leadsArray.length}`);
-    
-    res.json(leadsArray);
+    // Haal alle branchColumns op
+    const branchColumnService = require('../services/BranchColumnService');
+    // Vul per lead ALLE vaste kolommen uit Kolom Beheer aan in de response
+    const leadsWithColumns = await Promise.all(leadsArray.map(async lead => {
+      const branch = lead.sheetBranche;
+      const columns = branch ? await branchColumnService.getColumnsForBranch(branch) : [];
+      const out = { ...lead.toJSON() };
+      if (columns && Array.isArray(columns)) {
+        columns.forEach(col => {
+          if (!(col.key in out)) out[col.key] = '';
+        });
+      }
+      return out;
+    }));
+    logger.apiLog(`Response array lengte: ${leadsWithColumns.length}`);
+    res.json(leadsWithColumns);
     logger.apiLog('Response succesvol verzonden');
     
   } catch (error) {

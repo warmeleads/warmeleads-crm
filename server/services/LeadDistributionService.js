@@ -688,7 +688,7 @@ class LeadDistributionService {
           importDetails.push({ status: 'duplicate', facebookLeadId, tabName });
           continue;
         }
-        // Mapping per tabblad: gebruik mapping uit argument als aanwezig, anders standaard mapping
+        // Mapping per tabblad: gebruik mapping uit argument als aanwezig, anders vaste kolommen vullen
         let leadData = {};
         if (mapping && mapping[tabName]) {
           // mapping[tabName] is een object: { sheetKolom: { enabled, mappedTo } }
@@ -697,9 +697,15 @@ class LeadDistributionService {
               leadData[mapObj.mappedTo] = row[sheetCol];
             }
           });
-        } else {
-          // Geen mapping: alleen technische velden vullen, alle vaste kolommen leeg laten
         }
+        // Vul ALTIJD alle vaste kolommen uit branchColumns
+        branchColumns.forEach(col => {
+          if (leadData[col.key] === undefined) {
+            // Zoek de best matchende sheetkolom
+            const match = this.findMatchingSheetColumn(header, col);
+            leadData[col.key] = match ? row[match] : '';
+          }
+        });
         // Mapping & defaults voor technische velden
         leadData.facebookLeadId = facebookLeadId;
         leadData.sheetTabName = tabName;
