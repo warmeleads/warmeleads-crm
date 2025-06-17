@@ -292,12 +292,7 @@ export default function LeadsDashboard() {
                 key={lead.id || idx}
                 hover
                 sx={{ cursor: 'pointer' }}
-                onClick={e => {
-                  if (!e.target.closest('button')) {
-                    setSelectedLead(lead);
-                    setDrawerOpen(true);
-                  }
-                }}
+                onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}
               >
                 {columns.map(col => (
                   <TableCell key={col.key}>{lead[col.key] || ''}</TableCell>
@@ -621,53 +616,18 @@ export default function LeadsDashboard() {
       {LEAD_TYPES.map((type, idx) => (
         activeTab === idx && (
           <Box key={type} sx={{ mb: 6 }}>
-            {/* Toon database-tabel voor Thuisbatterij, met dynamische kolommen */}
-            {type === 'Thuisbatterij' ? (
-              <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden', mb: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 700, color: palette.accent, p: 2 }}>
-                  Thuisbatterij leads (originele sheetkolommen, gemapte waarden)
-                </Typography>
-                {groupedLeads.Thuisbatterij.length === 0 ? (
-                  <Typography sx={{ p: 2 }}>Geen thuisbatterij leads gevonden.</Typography>
-                ) : (
-                  <TableContainer sx={{ background: palette.tableBg }}>
-                    <Table stickyHeader>
-                      <TableHead>
-                        <TableRow>
-                          {(groupedLeads.Thuisbatterij[0]?.rawData ? Object.keys(groupedLeads.Thuisbatterij[0].rawData) : LEAD_TYPE_COLUMNS.Thuisbatterij.map(col => col.label)).map((col, i) => (
-                            <TableCell key={i} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col}</TableCell>
-                          ))}
-                          <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Acties</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {groupedLeads.Thuisbatterij.map((lead, i) => (
-                          <TableRow key={lead.id}>
-                            {(lead.rawData ? Object.keys(lead.rawData) : LEAD_TYPE_COLUMNS.Thuisbatterij.map(col => col.key)).map((col, j) => (
-                              <TableCell key={j}>{lead.rawData ? (lead.rawData[col] ?? '') : (lead[col] ?? '')}</TableCell>
-                            ))}
-                            <TableCell align="center">
-                              <IconButton color="primary" size="small" title="Kopieer lead ID">
-                                <ContentCopyIcon fontSize="small" />
-                              </IconButton>
-                              <IconButton color="error" size="small" title="Verwijder lead" onClick={() => { setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-              </Paper>
-            ) : (
-              <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden' }}>
+            <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden', mb: 4 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: palette.accent, p: 2 }}>
+                {type} leads
+              </Typography>
+              {groupedLeads[type].length === 0 ? (
+                <Typography sx={{ p: 2 }}>Geen {type.toLowerCase()} leads gevonden.</Typography>
+              ) : (
                 <TableContainer sx={{ background: palette.tableBg }}>
                   <Table stickyHeader>
                     <TableHead>
                       <TableRow>
-                        {(LEAD_TYPE_COLUMNS[type] || Object.keys(groupedLeads[type][0] || {}).map(k => ({ key: k, label: k }))).map(col => (
+                        {getColumnsForBranch(type).map(col => (
                           <TableCell key={col.key} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col.label}</TableCell>
                         ))}
                         <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Acties</TableCell>
@@ -675,13 +635,9 @@ export default function LeadsDashboard() {
                     </TableHead>
                     <TableBody>
                       {groupedLeads[type].map(lead => (
-                        <TableRow key={lead.id} hover sx={{ cursor: 'pointer' }} onClick={e => { if (!e.target.closest('button')) { setSelectedLead(lead); setDrawerOpen(true); } }}>
-                          {(LEAD_TYPE_COLUMNS[type] || Object.keys(lead).map(k => ({ key: k, label: k }))).map(col => (
-                            <TableCell key={col.key}>
-                              {col.key === 'createdAt' && lead[col.key] 
-                                ? new Date(lead[col.key]).toLocaleString('nl-NL')
-                                : lead[col.key] || ''}
-                            </TableCell>
+                        <TableRow key={lead.id} hover sx={{ cursor: 'pointer' }} onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
+                          {getColumnsForBranch(type).map(col => (
+                            <TableCell key={col.key}>{lead[col.key] || ''}</TableCell>
                           ))}
                           <TableCell align="center">
                             <IconButton color="primary" size="small" title="Kopieer lead ID">
@@ -690,7 +646,7 @@ export default function LeadsDashboard() {
                             <IconButton color="info" size="small" title="Details" onClick={e => { e.stopPropagation(); setSelectedLead(lead); setDrawerOpen(true); }}>
                               <InfoOutlinedIcon fontSize="small" />
                             </IconButton>
-                            <IconButton color="error" size="small" title="Verwijder lead" onClick={() => { setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
+                            <IconButton color="error" size="small" title="Verwijder lead" onClick={e => { e.stopPropagation(); setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
                               <DeleteIcon fontSize="small" />
                             </IconButton>
                           </TableCell>
@@ -699,8 +655,8 @@ export default function LeadsDashboard() {
                     </TableBody>
                   </Table>
                 </TableContainer>
-              </Paper>
-            )}
+              )}
+            </Paper>
           </Box>
         )
       ))}
