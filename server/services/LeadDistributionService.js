@@ -721,7 +721,10 @@ class LeadDistributionService {
         // Probeer lead aan te maken
         logger.importLog('Probeer lead aan te maken', { leadData, tabName });
         try {
-          const createdLead = await Lead.create(leadData);
+          const createdLead = await Lead.create({
+            ...leadData,
+            rawData: row
+          });
           logger.importLog('Lead succesvol aangemaakt', { 
             id: createdLead.id, 
             facebookLeadId, 
