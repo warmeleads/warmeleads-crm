@@ -122,18 +122,25 @@ export default function LeadsDashboard() {
 
   const fetchBranchColumns = async () => {
     try {
+      console.log('[FRONTEND] Start fetchBranchColumns...');
       const response = await fetch(`${API_BASE}/api/branch-columns`);
+      console.log('[FRONTEND] Branch columns response status:', response.status);
+      
       const data = await response.json();
+      console.log('[FRONTEND] Branch columns response data:', data);
       
       if (data.success) {
         const columnsMap = {};
         data.branches.forEach(branch => {
           columnsMap[branch.branch] = branch.columns;
         });
+        console.log('[FRONTEND] Columns map created:', columnsMap);
         setBranchColumns(columnsMap);
+      } else {
+        console.error('[FRONTEND] Branch columns response not successful:', data);
       }
     } catch (error) {
-      console.error('Fout bij ophalen branch kolommen:', error);
+      console.error('[FRONTEND] Fout bij ophalen branch kolommen:', error);
     }
   };
 
@@ -268,12 +275,18 @@ export default function LeadsDashboard() {
 
   // Dynamische kolommen per branche
   const getColumnsForBranch = (branchName) => {
-    return branchColumns[branchName] || [];
+    console.log('[FRONTEND] getColumnsForBranch called with:', branchName);
+    console.log('[FRONTEND] branchColumns state:', branchColumns);
+    const columns = branchColumns[branchName] || [];
+    console.log('[FRONTEND] Columns found for branch', branchName, ':', columns);
+    return columns;
   };
 
   // Render Thuisbatterij leads tabblad
   const renderThuisbatterijLeadsTable = () => {
     const columns = getColumnsForBranch('Thuisbatterij');
+    console.log('[FRONTEND] renderThuisbatterijLeadsTable - columns:', columns);
+    console.log('[FRONTEND] renderThuisbatterijLeadsTable - groupedLeads.Thuisbatterij:', groupedLeads.Thuisbatterij);
     
     return (
       <TableContainer component={Paper} sx={{ mt: 2 }}>
