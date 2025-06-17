@@ -96,6 +96,8 @@ export default function LeadsDashboard() {
   const [loadingLogs, setLoadingLogs] = React.useState(false);
   const [rawSheetData, setRawSheetData] = React.useState({ header: [], previewRows: [] });
   const [loadingRaw, setLoadingRaw] = React.useState(false);
+  const [sheetLeadsData, setSheetLeadsData] = React.useState({ header: [], leads: [] });
+  const [loadingSheetLeads, setLoadingSheetLeads] = React.useState(false);
 
   React.useEffect(() => {
     fetchLeads();
@@ -213,6 +215,20 @@ export default function LeadsDashboard() {
         })
         .catch(() => setRawSheetData({ header: [], previewRows: [] }))
         .finally(() => setLoadingRaw(false));
+    }
+  }, [activeTab]);
+
+  // Haal sheet-tabel op als tabblad 'Thuisbatterij' actief is
+  React.useEffect(() => {
+    if (activeTab === 0) {
+      setLoadingSheetLeads(true);
+      fetch(`${API_BASE}/api/leads/sheet?branch=Thuisbatterij`)
+        .then(res => res.json())
+        .then(data => {
+          setSheetLeadsData({ header: data.header || [], leads: data.leads || [] });
+        })
+        .catch(() => setSheetLeadsData({ header: [], leads: [] }))
+        .finally(() => setLoadingSheetLeads(false));
     }
   }, [activeTab]);
 
@@ -499,27 +515,27 @@ export default function LeadsDashboard() {
             {type === 'Thuisbatterij' && (
               <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden', mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: palette.accent, p: 2 }}>
-                  Geïmporteerde Thuisbatterij leads (originele sheetdata)
+                  Geïmporteerde Thuisbatterij leads (originele sheetkolommen, gemapte waarden)
                 </Typography>
-                {loadingRaw ? (
+                {loadingSheetLeads ? (
                   <Typography sx={{ p: 2 }}>Sheetdata laden...</Typography>
-                ) : rawSheetData.header.length === 0 ? (
+                ) : sheetLeadsData.header.length === 0 ? (
                   <Typography sx={{ p: 2 }}>Geen sheetdata gevonden voor Thuisbatterij.</Typography>
                 ) : (
                   <TableContainer sx={{ background: palette.tableBg }}>
                     <Table stickyHeader>
                       <TableHead>
                         <TableRow>
-                          {rawSheetData.header.map((col, i) => (
+                          {sheetLeadsData.header.map((col, i) => (
                             <TableCell key={i} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col}</TableCell>
                           ))}
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {rawSheetData.previewRows.map((row, i) => (
+                        {sheetLeadsData.leads.map((lead, i) => (
                           <TableRow key={i}>
-                            {row.map((cell, j) => (
-                              <TableCell key={j}>{String(cell ?? '')}</TableCell>
+                            {sheetLeadsData.header.map((col, j) => (
+                              <TableCell key={j}>{String(lead[col] ?? '')}</TableCell>
                             ))}
                           </TableRow>
                         ))}
