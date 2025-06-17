@@ -110,7 +110,14 @@ router.get('/', async (req, res) => {
     // Vul per lead ALLE vaste kolommen uit Kolom Beheer aan in de response
     const leadsWithColumns = await Promise.all(leadsArray.map(async lead => {
       const branch = lead.sheetBranche;
+      logger.apiLog(`Verwerk lead ${lead.id} voor branch: ${branch}`);
+      
       const columns = branch ? await branchColumnService.getColumnsForBranch(branch) : [];
+      logger.apiLog(`Kolommen gevonden voor branch ${branch}:`, { 
+        columnsCount: columns ? columns.length : 0,
+        columns: columns ? columns.map(c => c.key) : []
+      });
+      
       const out = { ...lead.toJSON() };
       if (columns && Array.isArray(columns)) {
         columns.forEach(col => {
@@ -119,6 +126,9 @@ router.get('/', async (req, res) => {
             out[col.key] = lead.rawData && lead.rawData[col.key] !== undefined ? lead.rawData[col.key] : '';
           }
         });
+        logger.apiLog(`Lead ${lead.id} uitgebreid met ${columns.length} kolommen`);
+      } else {
+        logger.apiLog(`GEEN kolommen gevonden voor branch ${branch}, lead ${lead.id} niet uitgebreid`);
       }
       return out;
     }));
@@ -230,6 +240,10 @@ router.get('/debug', async (req, res) => {
       attributes: ['id', 'name', 'displayName', 'category']
     });
     
+    // BranchColumns informatie
+    const branchColumnService = require('../services/BranchColumnService');
+    const allBranches = await branchColumnService.getAllBranches();
+    
     const debugInfo = {
       database: dbInfo,
       connection: connectionOk,
@@ -241,6 +255,10 @@ router.get('/debug', async (req, res) => {
         leadTypes: {
           count: leadTypeCount,
           types: leadTypes.map(lt => lt.toJSON())
+        },
+        branchColumns: {
+          count: allBranches.length,
+          branches: allBranches
         }
       },
       timestamp: new Date().toISOString()
