@@ -515,7 +515,7 @@ export default function LeadsDashboard() {
             {type === 'Thuisbatterij' ? (
               <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden', mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: palette.accent, p: 2 }}>
-                  Thuisbatterij leads (uit database, gemapte waarden)
+                  Thuisbatterij leads (originele sheetkolommen, gemapte waarden)
                 </Typography>
                 {groupedLeads.Thuisbatterij.length === 0 ? (
                   <Typography sx={{ p: 2 }}>Geen thuisbatterij leads gevonden.</Typography>
@@ -524,8 +524,8 @@ export default function LeadsDashboard() {
                     <Table stickyHeader>
                       <TableHead>
                         <TableRow>
-                          {(LEAD_TYPE_COLUMNS.Thuisbatterij).map((col, i) => (
-                            <TableCell key={i} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col.label}</TableCell>
+                          {(groupedLeads.Thuisbatterij[0]?.rawData ? Object.keys(groupedLeads.Thuisbatterij[0].rawData) : LEAD_TYPE_COLUMNS.Thuisbatterij.map(col => col.label)).map((col, i) => (
+                            <TableCell key={i} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col}</TableCell>
                           ))}
                           <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Acties</TableCell>
                         </TableRow>
@@ -533,8 +533,8 @@ export default function LeadsDashboard() {
                       <TableBody>
                         {groupedLeads.Thuisbatterij.map((lead, i) => (
                           <TableRow key={lead.id}>
-                            {(LEAD_TYPE_COLUMNS.Thuisbatterij).map((col, j) => (
-                              <TableCell key={j}>{col.key === 'createdAt' && lead[col.key] ? new Date(lead[col.key]).toLocaleString('nl-NL') : lead[col.key] || ''}</TableCell>
+                            {(lead.rawData ? Object.keys(lead.rawData) : LEAD_TYPE_COLUMNS.Thuisbatterij.map(col => col.key)).map((col, j) => (
+                              <TableCell key={j}>{lead.rawData ? (lead.rawData[col] ?? '') : (lead[col] ?? '')}</TableCell>
                             ))}
                             <TableCell align="center">
                               <IconButton color="primary" size="small" title="Kopieer lead ID">
