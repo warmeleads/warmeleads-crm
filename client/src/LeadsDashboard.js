@@ -390,20 +390,45 @@ export default function LeadsDashboard() {
                       <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>
                         Data:
                       </Typography>
-                      <Box sx={{ 
-                        mt: 0.5, 
-                        p: 1, 
-                        background: '#f8fafc', 
-                        borderRadius: 1, 
-                        fontFamily: 'monospace',
-                        fontSize: '0.75rem',
-                        maxHeight: 200,
-                        overflow: 'auto'
-                      }}>
-                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
-                          {JSON.stringify(log.data, null, 2)}
-                        </pre>
-                      </Box>
+                      {log.message && log.message.includes('Ruwe sheetdata van tabblad geïmporteerd') && log.data.header && log.data.previewRows ? (
+                        <Box sx={{ mt: 1, mb: 1, overflow: 'auto', maxWidth: '100%' }}>
+                          <TableContainer component={Paper} sx={{ maxHeight: 300 }}>
+                            <Table size="small" stickyHeader>
+                              <TableHead>
+                                <TableRow>
+                                  {log.data.header.map((col, i) => (
+                                    <TableCell key={i} sx={{ fontWeight: 700 }}>{col}</TableCell>
+                                  ))}
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {log.data.previewRows.map((row, i) => (
+                                  <TableRow key={i}>
+                                    {row.map((cell, j) => (
+                                      <TableCell key={j}>{String(cell ?? '')}</TableCell>
+                                    ))}
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Box>
+                      ) : (
+                        <Box sx={{ 
+                          mt: 0.5, 
+                          p: 1, 
+                          background: '#f8fafc', 
+                          borderRadius: 1, 
+                          fontFamily: 'monospace',
+                          fontSize: '0.75rem',
+                          maxHeight: 200,
+                          overflow: 'auto'
+                        }}>
+                          <pre style={{ margin: 0, whiteSpace: 'pre-wrap' }}>
+                            {JSON.stringify(log.data, null, 2)}
+                          </pre>
+                        </Box>
+                      )}
                     </Box>
                   )}
                 </Box>
