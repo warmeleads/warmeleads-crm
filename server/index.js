@@ -113,7 +113,7 @@ async function startServer() {
     // Automatische migratie uitvoeren bij elke start
     try {
       console.log('==> Voer database migraties uit...');
-      const output = execSync('npx sequelize-cli db:migrate --config server/config/config.json', {
+      const output = execSync('npx sequelize-cli db:migrate --config config/config.json', {
         encoding: 'utf-8',
         cwd: process.cwd(),
         stdio: 'pipe'
