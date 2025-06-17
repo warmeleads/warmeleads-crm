@@ -114,7 +114,10 @@ router.get('/', async (req, res) => {
       const out = { ...lead.toJSON() };
       if (columns && Array.isArray(columns)) {
         columns.forEach(col => {
-          if (!(col.key in out)) out[col.key] = '';
+          // Vul waarde uit veld, of uit rawData als veld niet bestaat
+          if (!(col.key in out) || out[col.key] === undefined) {
+            out[col.key] = lead.rawData && lead.rawData[col.key] !== undefined ? lead.rawData[col.key] : '';
+          }
         });
       }
       return out;
