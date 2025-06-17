@@ -110,61 +110,20 @@ app.use('*', (req, res) => {
 // Start server
 async function startServer() {
   try {
-    console.log('DEBUG: MIGRATE_ON_START =', process.env.MIGRATE_ON_START);
-    // Automatische migratie uitvoeren als MIGRATE_ON_START is gezet
-    if (process.env.MIGRATE_ON_START === 'true') {
-      try {
-        console.log('==> Voer database migraties uit...');
-        console.log('==> Huidige directory:', process.cwd());
-        console.log('==> Migraties directory:', require('path').join(process.cwd(), 'migrations'));
-        
-        // Controleer of migratiebestanden bestaan
-        const fs = require('fs');
-        const migrationsPath = require('path').join(process.cwd(), 'migrations');
-        if (fs.existsSync(migrationsPath)) {
-          const files = fs.readdirSync(migrationsPath);
-          console.log('==> Gevonden migratiebestanden:', files);
-        } else {
-          console.log('==> Migraties directory niet gevonden!');
-        }
-        
-        try {
-          const output = execSync('npx sequelize-cli db:migrate --env production --config config/config.json', { 
-            encoding: 'utf-8',
-            cwd: process.cwd(),
-            stdio: 'pipe'
-          });
-          console.log('==> Migratie output:', output);
-          console.log('==> Migraties voltooid!');
-          // Na migraties: seeders uitvoeren
-          try {
-            const seedOutput = execSync('node scripts/seed.js', { encoding: 'utf-8' });
-            console.log('==> Seeder script output:', seedOutput);
-          } catch (seedErr) {
-            console.error('==> Seeder script fout:', seedErr.message);
-            if (seedErr.stdout) console.error('==> Seeder STDOUT:', seedErr.stdout.toString());
-            if (seedErr.stderr) console.error('==> Seeder STDERR:', seedErr.stderr.toString());
-          }
-        } catch (err) {
-          console.error('==> Migratie-fout:', err.message);
-          if (err.stdout) console.error('==> STDOUT:', err.stdout.toString());
-          if (err.stderr) console.error('==> STDERR:', err.stderr.toString());
-          
-          // Probeer handmatig te migreren met meer info
-          console.log('==> Probeer handmatige migratie...');
-          try {
-            const manualOutput = execSync('npx sequelize-cli db:migrate:status --env production --config config/config.json', { 
-              encoding: 'utf-8',
-              cwd: process.cwd()
-            });
-            console.log('==> Migratie status:', manualOutput);
-          } catch (statusErr) {
-            console.error('==> Status check faalde:', statusErr.message);
-          }
-        }
-      } catch (err) {
-        console.error('==> Migratie-fout buiten:', err);
-      }
+    // Automatische migratie uitvoeren bij elke start
+    try {
+      console.log('==> Voer database migraties uit...');
+      const output = execSync('npx sequelize-cli db:migrate --config server/config/config.json', {
+        encoding: 'utf-8',
+        cwd: process.cwd(),
+        stdio: 'pipe'
+      });
+      console.log('==> Migratie output:', output);
+      console.log('==> Migraties voltooid!');
+    } catch (err) {
+      console.error('==> Migratie-fout:', err.message);
+      if (err.stdout) console.error('==> STDOUT:', err.stdout.toString());
+      if (err.stderr) console.error('==> STDERR:', err.stderr.toString());
     }
     // Test database connection (optional for now)
     try {

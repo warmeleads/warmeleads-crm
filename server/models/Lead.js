@@ -86,7 +86,7 @@ module.exports = (sequelize) => {
       type: DataTypes.JSON // Array of interests like ['solar_panels', 'heat_pump', 'battery']
     },
     budget: {
-      type: DataTypes.ENUM('under_10k', '10k_25k', '25k_50k', 'over_50k', 'unknown')
+      type: DataTypes.STRING
     },
     timeline: {
       type: DataTypes.ENUM('immediate', 'within_3_months', 'within_6_months', 'within_year', 'unknown')
@@ -128,6 +128,33 @@ module.exports = (sequelize) => {
     },
     sheetLocation: {
       type: DataTypes.STRING // Locatie uit tabbladnaam
+    },
+    naamKlant: {
+      type: DataTypes.STRING
+    },
+    datumInteresse: {
+      type: DataTypes.STRING
+    },
+    postcode: {
+      type: DataTypes.STRING
+    },
+    plaatsnaam: {
+      type: DataTypes.STRING
+    },
+    telefoonnummer: {
+      type: DataTypes.STRING
+    },
+    zonnepanelen: {
+      type: DataTypes.STRING
+    },
+    dynamischContract: {
+      type: DataTypes.STRING
+    },
+    stroomverbruik: {
+      type: DataTypes.STRING
+    },
+    redenThuisbatterij: {
+      type: DataTypes.STRING
     }
   }, {
     tableName: 'leads',

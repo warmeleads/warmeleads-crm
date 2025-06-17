@@ -81,7 +81,34 @@ module.exports = {
         type: Sequelize.JSON
       },
       budget: {
-        type: Sequelize.ENUM('under_10k', '10k_25k', '25k_50k', 'over_50k', 'unknown')
+        type: Sequelize.STRING
+      },
+      naamKlant: {
+        type: Sequelize.STRING
+      },
+      datumInteresse: {
+        type: Sequelize.STRING
+      },
+      postcode: {
+        type: Sequelize.STRING
+      },
+      plaatsnaam: {
+        type: Sequelize.STRING
+      },
+      telefoonnummer: {
+        type: Sequelize.STRING
+      },
+      zonnepanelen: {
+        type: Sequelize.STRING
+      },
+      dynamischContract: {
+        type: Sequelize.STRING
+      },
+      stroomverbruik: {
+        type: Sequelize.STRING
+      },
+      redenThuisbatterij: {
+        type: Sequelize.STRING
       },
       timeline: {
         type: Sequelize.ENUM('immediate', 'within_3_months', 'within_6_months', 'within_year', 'unknown')
