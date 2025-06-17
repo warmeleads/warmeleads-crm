@@ -410,16 +410,7 @@ function ImportLeads() {
                 {filteredTabs[wizardIndex].columns.length === 0 && <Typography color="text.secondary">Geen kolommen gevonden.</Typography>}
                 {filteredTabs[wizardIndex].columns.map(col => (
                   <Box key={col} sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1, flexDirection: isMobile ? 'column' : 'row' }}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={tabMappings[filteredTabs[wizardIndex].name]?.[col]?.enabled || false}
-                          onChange={e => handleMappingChange(filteredTabs[wizardIndex].name, col, 'enabled', e.target.checked)}
-                          sx={{ width: isMobile ? 32 : 24, height: isMobile ? 32 : 24 }}
-                        />
-                      }
-                      label={<span style={{ fontSize: isMobile ? 18 : 16 }}>{col}</span>}
-                    />
+                    <Typography sx={{ minWidth: 120, fontWeight: 500 }}>{col}</Typography>
                     <Select
                       size={isMobile ? "medium" : "small"}
                       value={tabMappings[filteredTabs[wizardIndex].name]?.[col]?.mappedTo || ''}
