@@ -648,6 +648,12 @@ class LeadDistributionService {
       if (!rows || rows.length < 2) continue;
       const header = rows[0];
       const dataRows = rows.slice(1);
+      // Log de ruwe sheetdata van dit tabblad (max 10 rijen voor log)
+      logger.importLog('Ruwe sheetdata van tabblad geïmporteerd', {
+        tabName,
+        header,
+        previewRows: dataRows.slice(0, 10)
+      });
       for (const rowArr of dataRows) {
         // Maak een row-object van header/rowArr
         const row = {};
