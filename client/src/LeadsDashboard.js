@@ -197,29 +197,32 @@ export default function LeadsDashboard() {
     })
   };
 
+  // Helper: detecteer mobiel
+  const isMobile = window.innerWidth < 600;
+
   return (
-    <Box sx={{ minHeight: '100vh', background: palette.bg, p: { xs: 1, md: 4 } }}>
+    <Box sx={{ minHeight: '100vh', background: palette.bg, p: { xs: 0.5, md: 4 } }}>
       {/* Hero header met animatie */}
       <Fade in timeout={900}>
-        <Box sx={{ mb: 5, display: 'flex', alignItems: 'center', gap: 3, justifyContent: 'center', position: 'relative' }}>
+        <Box sx={{ mb: { xs: 2, md: 5 }, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'center', gap: 3, justifyContent: 'center', position: 'relative' }}>
           <Box sx={{
             position: 'absolute',
-            left: -60,
-            top: -40,
-            width: 180,
-            height: 180,
+            left: { xs: -30, md: -60 },
+            top: { xs: -20, md: -40 },
+            width: { xs: 90, md: 180 },
+            height: { xs: 90, md: 180 },
             background: 'radial-gradient(circle, #a5b4fc 0%, #f0f4ff 80%)',
             opacity: 0.4,
             borderRadius: '50%',
             zIndex: 0,
             filter: 'blur(8px)'
           }} />
-          <GroupIcon sx={{ fontSize: 60, color: palette.accent, zIndex: 1 }} />
+          <GroupIcon sx={{ fontSize: { xs: 36, md: 60 }, color: palette.accent, zIndex: 1 }} />
           <Box sx={{ zIndex: 1 }}>
-            <Typography variant="h2" sx={{ fontWeight: 900, letterSpacing: 1, color: palette.accent, mb: 1, textShadow: '0 2px 12px #e0e7ff' }}>
+            <Typography variant={isMobile ? "h4" : "h2"} sx={{ fontWeight: 900, letterSpacing: 1, color: palette.accent, mb: 1, textShadow: '0 2px 12px #e0e7ff' }}>
               Leads Dashboard
             </Typography>
-            <Typography variant="h5" sx={{ color: palette.text, fontWeight: 400, opacity: 0.7 }}>
+            <Typography variant={isMobile ? "body1" : "h5"} sx={{ color: palette.text, fontWeight: 400, opacity: 0.7 }}>
               Direct inzicht in alle inkomende leads, validatie en verdeling
             </Typography>
           </Box>
@@ -227,28 +230,28 @@ export default function LeadsDashboard() {
       </Fade>
 
       {/* Statistieken cards */}
-      <Grid container spacing={3} sx={{ mb: 4, justifyContent: 'center' }}>
+      <Grid container spacing={2} sx={{ mb: { xs: 2, md: 4 }, justifyContent: 'center', flexDirection: { xs: 'column', sm: 'row' } }}>
         <Grid item xs={12} sm={4} md={3}>
-          <Fade in timeout={1000}><Card elevation={6} sx={{ borderRadius: 4, background: 'linear-gradient(120deg, #6366f1 60%, #a5b4fc 100%)', color: '#fff', boxShadow: '0 8px 32px 0 #6366f133' }}>
+          <Fade in timeout={1000}><Card elevation={6} sx={{ borderRadius: 4, background: 'linear-gradient(120deg, #6366f1 60%, #a5b4fc 100%)', color: '#fff', boxShadow: '0 8px 32px 0 #6366f133', mb: { xs: 2, sm: 0 } }}>
             <CardContent>
               <Typography variant="h6" sx={{ opacity: 0.85 }}>Totaal leads</Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800 }}>{totalLeads}</Typography>
+              <Typography variant={isMobile ? "h4" : "h2"} sx={{ fontWeight: 800 }}>{totalLeads}</Typography>
             </CardContent>
           </Card></Fade>
         </Grid>
         <Grid item xs={12} sm={4} md={3}>
-          <Fade in timeout={1200}><Card elevation={6} sx={{ borderRadius: 4, background: 'linear-gradient(120deg, #06b6d4 60%, #67e8f9 100%)', color: '#fff', boxShadow: '0 8px 32px 0 #06b6d433' }}>
+          <Fade in timeout={1200}><Card elevation={6} sx={{ borderRadius: 4, background: 'linear-gradient(120deg, #06b6d4 60%, #67e8f9 100%)', color: '#fff', boxShadow: '0 8px 32px 0 #06b6d433', mb: { xs: 2, sm: 0 } }}>
             <CardContent>
               <Typography variant="h6" sx={{ opacity: 0.85 }}>Geldige leads</Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800 }}>{validLeads}</Typography>
+              <Typography variant={isMobile ? "h4" : "h2"} sx={{ fontWeight: 800 }}>{validLeads}</Typography>
             </CardContent>
           </Card></Fade>
         </Grid>
         <Grid item xs={12} sm={4} md={3}>
-          <Fade in timeout={1400}><Card elevation={6} sx={{ borderRadius: 4, background: 'linear-gradient(120deg, #f59e42 60%, #fef08a 100%)', color: '#fff', boxShadow: '0 8px 32px 0 #f59e4233' }}>
+          <Fade in timeout={1400}><Card elevation={6} sx={{ borderRadius: 4, background: 'linear-gradient(120deg, #f59e42 60%, #fef08a 100%)', color: '#fff', boxShadow: '0 8px 32px 0 #f59e4233', mb: { xs: 2, sm: 0 } }}>
             <CardContent>
               <Typography variant="h6" sx={{ opacity: 0.85 }}>Duplicaten</Typography>
-              <Typography variant="h2" sx={{ fontWeight: 800 }}>{duplicateLeads}</Typography>
+              <Typography variant={isMobile ? "h4" : "h2"} sx={{ fontWeight: 800 }}>{duplicateLeads}</Typography>
             </CardContent>
           </Card></Fade>
         </Grid>
@@ -257,14 +260,14 @@ export default function LeadsDashboard() {
       <Button
         variant="outlined"
         color="error"
-        sx={{ mb: 2, fontWeight: 700 }}
+        sx={{ mb: 2, fontWeight: 700, width: { xs: '100%', sm: 'auto' }, py: 1.5, fontSize: { xs: 16, sm: 14 } }}
         onClick={() => setDeleteAllDialogOpen(true)}
       >
         Verwijder alle leads
       </Button>
 
       {/* Filterbalk */}
-      <Paper elevation={0} sx={{ mb: 4, p: { xs: 1, md: 2 }, display: 'flex', alignItems: 'center', gap: 2, borderRadius: 4, background: '#fff', boxShadow: '0 2px 16px 0 #6366f11a' }}>
+      <Paper elevation={0} sx={{ mb: 4, p: { xs: 1, md: 2 }, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, borderRadius: 4, background: '#fff', boxShadow: '0 2px 16px 0 #6366f11a' }}>
         <TextField
           variant="outlined"
           size="medium"
@@ -283,25 +286,25 @@ export default function LeadsDashboard() {
         <Button
           variant={filterValid === 'all' ? 'contained' : 'outlined'}
           onClick={() => setFilterValid('all')}
-          sx={{ minWidth: 90, fontWeight: 700, color: filterValid === 'all' ? '#fff' : palette.accent, background: filterValid === 'all' ? palette.accent : '#fff', boxShadow: filterValid === 'all' ? '0 2px 8px #6366f133' : 'none' }}
+          sx={{ minWidth: 90, fontWeight: 700, color: filterValid === 'all' ? '#fff' : palette.accent, background: filterValid === 'all' ? palette.accent : '#fff', boxShadow: filterValid === 'all' ? '0 2px 8px #6366f133' : 'none', py: 1.2, fontSize: { xs: 15, sm: 14 } }}
         >
           Alle
         </Button>
         <Button
           variant={filterValid === 'valid' ? 'contained' : 'outlined'}
           onClick={() => setFilterValid('valid')}
-          sx={{ minWidth: 90, fontWeight: 700, color: filterValid === 'valid' ? '#fff' : palette.accent2, background: filterValid === 'valid' ? palette.accent2 : '#fff', boxShadow: filterValid === 'valid' ? '0 2px 8px #06b6d433' : 'none' }}
+          sx={{ minWidth: 90, fontWeight: 700, color: filterValid === 'valid' ? '#fff' : palette.accent2, background: filterValid === 'valid' ? palette.accent2 : '#fff', boxShadow: filterValid === 'valid' ? '0 2px 8px #06b6d433' : 'none', py: 1.2, fontSize: { xs: 15, sm: 14 } }}
         >
           Geldig
         </Button>
         <Button
           variant={filterValid === 'invalid' ? 'contained' : 'outlined'}
           onClick={() => setFilterValid('invalid')}
-          sx={{ minWidth: 90, fontWeight: 700, color: filterValid === 'invalid' ? '#fff' : '#f59e42', background: filterValid === 'invalid' ? '#f59e42' : '#fff', boxShadow: filterValid === 'invalid' ? '0 2px 8px #f59e4233' : 'none' }}
+          sx={{ minWidth: 90, fontWeight: 700, color: filterValid === 'invalid' ? '#fff' : '#f59e42', background: filterValid === 'invalid' ? '#f59e42' : '#fff', boxShadow: filterValid === 'invalid' ? '0 2px 8px #f59e4233' : 'none', py: 1.2, fontSize: { xs: 15, sm: 14 } }}
         >
           Ongeldig
         </Button>
-        <IconButton sx={{ color: palette.accent }}>
+        <IconButton sx={{ color: palette.accent, fontSize: { xs: 28, sm: 24 } }}>
           <FilterListIcon />
         </IconButton>
       </Paper>
@@ -451,50 +454,85 @@ export default function LeadsDashboard() {
       {LEAD_TYPES.map((type, idx) => (
         activeTab === idx && (
           <Box key={type} sx={{ mb: 6 }}>
-            <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden' }}>
-              <TableContainer sx={{ background: palette.tableBg }}>
-                <Table stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      {(LEAD_TYPE_COLUMNS[type] || Object.keys(groupedLeads[type][0] || {}).map(k => ({ key: k, label: k }))).map(col => (
-                        <TableCell key={col.key} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col.label}</TableCell>
-                      ))}
-                      <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Acties</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {groupedLeads[type].map(lead => (
-                      <TableRow key={lead.id} hover>
-                        {(LEAD_TYPE_COLUMNS[type] || Object.keys(lead).map(k => ({ key: k, label: k }))).map(col => (
-                          <TableCell key={col.key}>
-                            {col.key === 'createdAt' && lead[col.key] 
-                              ? new Date(lead[col.key]).toLocaleString('nl-NL')
-                              : lead[col.key] || ''}
-                          </TableCell>
-                        ))}
-                        <TableCell align="center">
-                          <IconButton color="primary" size="small" title="Kopieer lead ID">
-                            <ContentCopyIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton color="info" size="small" title="Details" onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
-                            <InfoOutlinedIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton color="error" size="small" title="Verwijder lead" onClick={() => { setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
+            {isMobile ? (
+              <Box>
+                {groupedLeads[type].map(lead => (
+                  <Card key={lead.id} sx={{ mb: 2, borderRadius: 3, boxShadow: '0 2px 12px #6366f11a', p: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                      <Avatar {...stringAvatar(`${lead.firstName} ${lead.lastName}`)} sx={{ width: 40, height: 40, fontSize: 18 }} />
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: palette.accent }}>{lead.firstName} {lead.lastName}</Typography>
+                        <Typography variant="body2" sx={{ color: palette.text }}>{lead.email}</Typography>
+                      </Box>
+                    </Box>
+                    <Divider sx={{ mb: 1 }} />
+                    {(LEAD_TYPE_COLUMNS[type] || Object.keys(lead).map(k => ({ key: k, label: k }))).map(col => (
+                      col.key !== 'firstName' && col.key !== 'lastName' && col.key !== 'email' && (
+                        <Typography key={col.key} variant="body2" sx={{ color: palette.text, mb: 0.5 }}>
+                          <b>{col.label}:</b> {col.key === 'createdAt' && lead[col.key] ? new Date(lead[col.key]).toLocaleString('nl-NL') : lead[col.key] || ''}
+                        </Typography>
+                      )
                     ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Paper>
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                      <IconButton color="primary" size="medium" title="Kopieer lead ID">
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton color="info" size="medium" title="Details" onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
+                        <InfoOutlinedIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton color="error" size="medium" title="Verwijder lead" onClick={() => { setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Card>
+                ))}
+              </Box>
+            ) : (
+              <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden' }}>
+                <TableContainer sx={{ background: palette.tableBg }}>
+                  <Table stickyHeader>
+                    <TableHead>
+                      <TableRow>
+                        {(LEAD_TYPE_COLUMNS[type] || Object.keys(groupedLeads[type][0] || {}).map(k => ({ key: k, label: k }))).map(col => (
+                          <TableCell key={col.key} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col.label}</TableCell>
+                        ))}
+                        <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Acties</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {groupedLeads[type].map(lead => (
+                        <TableRow key={lead.id} hover>
+                          {(LEAD_TYPE_COLUMNS[type] || Object.keys(lead).map(k => ({ key: k, label: k }))).map(col => (
+                            <TableCell key={col.key}>
+                              {col.key === 'createdAt' && lead[col.key] 
+                                ? new Date(lead[col.key]).toLocaleString('nl-NL')
+                                : lead[col.key] || ''}
+                            </TableCell>
+                          ))}
+                          <TableCell align="center">
+                            <IconButton color="primary" size="small" title="Kopieer lead ID">
+                              <ContentCopyIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton color="info" size="small" title="Details" onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
+                              <InfoOutlinedIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton color="error" size="small" title="Verwijder lead" onClick={() => { setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Paper>
+            )}
           </Box>
         )
       ))}
 
       {/* Lead details drawer */}
-      <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)} PaperProps={{ sx: { width: { xs: '100%', sm: 400, md: 480 }, p: 3, background: '#f8fafc' } }}>
+      <Drawer anchor={isMobile ? "bottom" : "right"} open={drawerOpen} onClose={() => setDrawerOpen(false)} PaperProps={{ sx: { width: { xs: '100%', sm: 400, md: 480 }, height: isMobile ? '90vh' : 'auto', p: 3, background: '#f8fafc' } }}>
         {selectedLead && (
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
