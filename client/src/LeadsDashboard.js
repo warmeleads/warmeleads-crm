@@ -511,32 +511,30 @@ export default function LeadsDashboard() {
       {LEAD_TYPES.map((type, idx) => (
         activeTab === idx && (
           <Box key={type} sx={{ mb: 6 }}>
-            {/* Toon sheetdata-tabel voor Thuisbatterij, inclusief Acties */}
+            {/* Toon database-tabel voor Thuisbatterij, met dynamische kolommen */}
             {type === 'Thuisbatterij' ? (
               <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden', mb: 4 }}>
                 <Typography variant="h6" sx={{ fontWeight: 700, color: palette.accent, p: 2 }}>
-                  Geïmporteerde Thuisbatterij leads (originele sheetkolommen, gemapte waarden)
+                  Thuisbatterij leads (uit database, gemapte waarden)
                 </Typography>
-                {loadingSheetLeads ? (
-                  <Typography sx={{ p: 2 }}>Sheetdata laden...</Typography>
-                ) : sheetLeadsData.header.length === 0 ? (
-                  <Typography sx={{ p: 2 }}>Geen sheetdata gevonden voor Thuisbatterij.</Typography>
+                {groupedLeads.Thuisbatterij.length === 0 ? (
+                  <Typography sx={{ p: 2 }}>Geen thuisbatterij leads gevonden.</Typography>
                 ) : (
                   <TableContainer sx={{ background: palette.tableBg }}>
                     <Table stickyHeader>
                       <TableHead>
                         <TableRow>
-                          {sheetLeadsData.header.map((col, i) => (
-                            <TableCell key={i} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col}</TableCell>
+                          {(LEAD_TYPE_COLUMNS.Thuisbatterij).map((col, i) => (
+                            <TableCell key={i} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col.label}</TableCell>
                           ))}
                           <TableCell sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>Acties</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {sheetLeadsData.leads.map((lead, i) => (
-                          <TableRow key={i}>
-                            {sheetLeadsData.header.map((col, j) => (
-                              <TableCell key={j}>{String(lead[col] ?? '')}</TableCell>
+                        {groupedLeads.Thuisbatterij.map((lead, i) => (
+                          <TableRow key={lead.id}>
+                            {(LEAD_TYPE_COLUMNS.Thuisbatterij).map((col, j) => (
+                              <TableCell key={j}>{col.key === 'createdAt' && lead[col.key] ? new Date(lead[col.key]).toLocaleString('nl-NL') : lead[col.key] || ''}</TableCell>
                             ))}
                             <TableCell align="center">
                               <IconButton color="primary" size="small" title="Kopieer lead ID">
