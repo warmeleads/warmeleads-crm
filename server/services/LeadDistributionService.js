@@ -683,6 +683,7 @@ class LeadDistributionService {
               leadData[mapObj.mappedTo] = row[sheetCol];
             }
           });
+          // Vul ALLEEN de gemapte kolommen, laat alle andere vaste kolommen leeg
         } else {
           // Mapping per branche (fallback)
           const brancheMapping = leadMappings[sheetBranche] || {};
