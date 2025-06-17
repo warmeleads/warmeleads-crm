@@ -292,7 +292,12 @@ export default function LeadsDashboard() {
                 key={lead.id || idx}
                 hover
                 sx={{ cursor: 'pointer' }}
-                onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}
+                onClick={e => {
+                  if (!e.target.closest('button')) {
+                    setSelectedLead(lead);
+                    setDrawerOpen(true);
+                  }
+                }}
               >
                 {columns.map(col => (
                   <TableCell key={col.key}>{lead[col.key] || ''}</TableCell>
@@ -670,7 +675,7 @@ export default function LeadsDashboard() {
                     </TableHead>
                     <TableBody>
                       {groupedLeads[type].map(lead => (
-                        <TableRow key={lead.id} hover sx={{ cursor: 'pointer' }} onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
+                        <TableRow key={lead.id} hover sx={{ cursor: 'pointer' }} onClick={e => { if (!e.target.closest('button')) { setSelectedLead(lead); setDrawerOpen(true); } }}>
                           {(LEAD_TYPE_COLUMNS[type] || Object.keys(lead).map(k => ({ key: k, label: k }))).map(col => (
                             <TableCell key={col.key}>
                               {col.key === 'createdAt' && lead[col.key] 
