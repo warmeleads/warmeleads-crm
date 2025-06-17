@@ -697,18 +697,10 @@ class LeadDistributionService {
               leadData[mapObj.mappedTo] = row[sheetCol];
             }
           });
-          // Vul alleen de gemapte kolommen, geen enkele standaardwaarde voor vaste kolommen
         } else {
-          // Automatische mapping gebaseerd op branch kolommen
-          branchColumns.forEach(column => {
-            // Zoek naar kolommen in de sheet die overeenkomen met de vaste kolom
-            const matchingSheetCol = this.findMatchingSheetColumn(header, column);
-            if (matchingSheetCol) {
-              leadData[column.key] = row[matchingSheetCol];
-            }
-          });
+          // Geen mapping: alleen technische velden vullen, alle vaste kolommen leeg laten
         }
-        // Mapping & defaults voor verplichte velden
+        // Mapping & defaults voor technische velden
         leadData.facebookLeadId = facebookLeadId;
         leadData.sheetTabName = tabName;
         leadData.sheetCustomerName = sheetCustomerName;

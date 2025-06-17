@@ -670,7 +670,7 @@ export default function LeadsDashboard() {
                     </TableHead>
                     <TableBody>
                       {groupedLeads[type].map(lead => (
-                        <TableRow key={lead.id} hover>
+                        <TableRow key={lead.id} hover sx={{ cursor: 'pointer' }} onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
                           {(LEAD_TYPE_COLUMNS[type] || Object.keys(lead).map(k => ({ key: k, label: k }))).map(col => (
                             <TableCell key={col.key}>
                               {col.key === 'createdAt' && lead[col.key] 
@@ -682,7 +682,7 @@ export default function LeadsDashboard() {
                             <IconButton color="primary" size="small" title="Kopieer lead ID">
                               <ContentCopyIcon fontSize="small" />
                             </IconButton>
-                            <IconButton color="info" size="small" title="Details" onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}>
+                            <IconButton color="info" size="small" title="Details" onClick={e => { e.stopPropagation(); setSelectedLead(lead); setDrawerOpen(true); }}>
                               <InfoOutlinedIcon fontSize="small" />
                             </IconButton>
                             <IconButton color="error" size="small" title="Verwijder lead" onClick={() => { setLeadToDelete(lead); setDeleteDialogOpen(true); }}>
