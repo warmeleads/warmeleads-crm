@@ -113,10 +113,29 @@ export default function LeadsDashboard() {
   const [loadingRaw, setLoadingRaw] = React.useState(false);
   const [sheetLeadsData, setSheetLeadsData] = React.useState({ header: [], leads: [] });
   const [loadingSheetLeads, setLoadingSheetLeads] = React.useState(false);
+  const [branchColumns, setBranchColumns] = React.useState({});
 
   React.useEffect(() => {
     fetchLeads();
+    fetchBranchColumns();
   }, []);
+
+  const fetchBranchColumns = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/api/branch-columns`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const columnsMap = {};
+        data.branches.forEach(branch => {
+          columnsMap[branch.branch] = branch.columns;
+        });
+        setBranchColumns(columnsMap);
+      }
+    } catch (error) {
+      console.error('Fout bij ophalen branch kolommen:', error);
+    }
+  };
 
   const fetchLeads = async () => {
     console.log('[FRONTEND] Start fetchLeads...');
@@ -247,59 +266,76 @@ export default function LeadsDashboard() {
     }
   }, [activeTab]);
 
+  // Dynamische kolommen per branche
+  const getColumnsForBranch = (branchName) => {
+    return branchColumns[branchName] || [];
+  };
+
   // Render Thuisbatterij leads tabblad
-  const renderThuisbatterijLeadsTable = () => (
-    <TableContainer component={Paper} sx={{ mt: 2 }}>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            {THUISBATTERIJ_COLUMNS.map(col => (
-              <TableCell key={col.key} sx={{ fontWeight: 700 }}>{col.label}</TableCell>
-            ))}
-            <TableCell sx={{ fontWeight: 700 }}>Acties</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {groupedLeads.Thuisbatterij.map((lead, idx) => (
-            <TableRow
-              key={lead.id || idx}
-              hover
-              sx={{ cursor: 'pointer' }}
-              onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}
-            >
-              {THUISBATTERIJ_COLUMNS.map(col => (
-                <TableCell key={col.key}>{lead[col.key] || 'Onbekend'}</TableCell>
+  const renderThuisbatterijLeadsTable = () => {
+    const columns = getColumnsForBranch('Thuisbatterij');
+    
+    return (
+      <TableContainer component={Paper} sx={{ mt: 2 }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              {columns.map(col => (
+                <TableCell key={col.key} sx={{ fontWeight: 700 }}>{col.label}</TableCell>
               ))}
-              <TableCell>
-                <IconButton size="small" onClick={e => { e.stopPropagation(); setLeadToDelete(lead); setDeleteDialogOpen(true); }}><DeleteIcon fontSize="small" /></IconButton>
-              </TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Acties</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
+          </TableHead>
+          <TableBody>
+            {groupedLeads.Thuisbatterij.map((lead, idx) => (
+              <TableRow
+                key={lead.id || idx}
+                hover
+                sx={{ cursor: 'pointer' }}
+                onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}
+              >
+                {columns.map(col => (
+                  <TableCell key={col.key}>{lead[col.key] || ''}</TableCell>
+                ))}
+                <TableCell>
+                  <IconButton size="small" onClick={e => { e.stopPropagation(); setLeadToDelete(lead); setDeleteDialogOpen(true); }}><DeleteIcon fontSize="small" /></IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  };
 
   // Drawer voor lead details
-  const renderLeadDrawer = () => (
-    <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-      <Box sx={{ width: 400, p: 3 }}>
-        <Typography variant="h6" gutterBottom>Lead details</Typography>
-        {selectedLead && (
-          <>
-            {THUISBATTERIJ_COLUMNS.map(col => (
-              <Box key={col.key} sx={{ mb: 1 }}>
-                <Typography variant="subtitle2" color="text.secondary">{col.label}</Typography>
-                <Typography variant="body1">{selectedLead[col.key] || 'Onbekend'}</Typography>
-              </Box>
-            ))}
-          </>
-        )}
-        <Divider sx={{ my: 2 }} />
-        <Button variant="outlined" color="primary" onClick={() => setDrawerOpen(false)} fullWidth>Sluiten</Button>
-      </Box>
-    </Drawer>
-  );
+  const renderLeadDrawer = () => {
+    const columns = selectedLead ? getColumnsForBranch(selectedLead.sheetBranche) : [];
+    
+    return (
+      <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <Box sx={{ width: 400, p: 3 }}>
+          <Typography variant="h6" gutterBottom>Lead details</Typography>
+          {selectedLead && columns.length > 0 ? (
+            <>
+              {columns.map(col => (
+                <Box key={col.key} sx={{ mb: 1 }}>
+                  <Typography variant="subtitle2" color="text.secondary">{col.label}</Typography>
+                  <Typography variant="body1">{selectedLead[col.key] || ''}</Typography>
+                </Box>
+              ))}
+            </>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Geen kolommen gevonden voor deze branche
+            </Typography>
+          )}
+          <Divider sx={{ my: 2 }} />
+          <Button variant="outlined" color="primary" onClick={() => setDrawerOpen(false)} fullWidth>Sluiten</Button>
+        </Box>
+      </Drawer>
+    );
+  };
 
   return (
     <Box sx={{ minHeight: '100vh', background: palette.bg, p: { xs: 0.5, md: 4 } }}>

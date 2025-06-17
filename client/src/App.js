@@ -10,6 +10,7 @@ import Settings from './Settings';
 import ImportLeads from './ImportLeads';
 import BugReportIcon from '@mui/icons-material/BugReport';
 import Logs from './Logs';
+import ColumnManagement from './ColumnManagement';
 
 function Leads() {
   return <div><h2>Leads</h2><p>Hier komt het overzicht van leads.</p></div>;
@@ -20,12 +21,13 @@ function Customers() {
 
 function Sidebar({ open, onClose, palette, isMobile }) {
   const location = useLocation();
-  const navLinks = [
-    { to: '/', label: 'Leads', icon: <ListAltIcon /> },
-    { to: '/customers', label: 'Klanten', icon: <GroupIcon /> },
-    { to: '/import', label: 'Importeren', icon: <ListAltIcon /> },
-    { to: '/logs', label: 'Logs & Debug', icon: <BugReportIcon /> },
-    { to: '/settings', label: 'Instellingen', icon: <SettingsIcon /> },
+  const menuItems = [
+    { path: '/', label: 'Leads Dashboard', icon: <GroupIcon /> },
+    { path: '/customers', label: 'Klanten', icon: <ListAltIcon /> },
+    { path: '/settings', label: 'Instellingen', icon: <SettingsIcon /> },
+    { path: '/import', label: 'Import Leads', icon: <BugReportIcon /> },
+    { path: '/logs', label: 'Logs', icon: <BugReportIcon /> },
+    { path: '/column-management', label: 'Kolom Beheer', icon: <SettingsIcon /> }
   ];
   return (
     <Box sx={{
@@ -49,8 +51,8 @@ function Sidebar({ open, onClose, palette, isMobile }) {
         </Typography>
       </Box>
       <ul style={{ listStyle: 'none', padding: 0, width: '100%' }}>
-        {navLinks.map(link => (
-          <li key={link.to} style={{ marginBottom: 24 }}>
+        {menuItems.map(item => (
+          <li key={item.path} style={{ marginBottom: 24 }}>
             <Link
               style={{
                 color: '#fff',
@@ -63,19 +65,19 @@ function Sidebar({ open, onClose, palette, isMobile }) {
                 padding: '16px 20px',
                 borderRadius: 12,
                 transition: 'background 0.2s',
-                background: location.pathname === link.to ? palette.sidebarActive : 'none',
-                color: location.pathname === link.to ? palette.accent : '#fff',
-                boxShadow: location.pathname === link.to ? '0 2px 12px #fff3' : 'none',
-                filter: location.pathname === link.to ? 'drop-shadow(0 2px 8px #06b6d4)' : 'none',
+                background: location.pathname === item.path ? palette.sidebarActive : 'none',
+                color: location.pathname === item.path ? palette.accent : '#fff',
+                boxShadow: location.pathname === item.path ? '0 2px 12px #fff3' : 'none',
+                filter: location.pathname === item.path ? 'drop-shadow(0 2px 8px #06b6d4)' : 'none',
                 cursor: 'pointer',
                 fontSize: isMobile ? 20 : 18,
                 minHeight: isMobile ? 56 : 44
               }}
-              to={link.to}
+              to={item.path}
               onClick={onClose}
             >
-              {React.cloneElement(link.icon, { sx: { fontSize: 28, color: location.pathname === link.to ? palette.accent : '#fff' } })}
-              {link.label}
+              {React.cloneElement(item.icon, { sx: { fontSize: 28, color: location.pathname === item.path ? palette.accent : '#fff' } })}
+              {item.label}
             </Link>
           </li>
         ))}
@@ -123,6 +125,7 @@ function App() {
             <Route path="/settings" element={<Settings />} />
             <Route path="/import" element={<ImportLeads />} />
             <Route path="/logs" element={<Logs />} />
+            <Route path="/column-management" element={<ColumnManagement />} />
           </Routes>
         </Box>
       </Box>

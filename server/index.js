@@ -20,6 +20,7 @@ const leadRoutes = require('./routes/leads');
 const distributionRoutes = require('./routes/distribution');
 const analyticsRoutes = require('./routes/analytics');
 const settingsRoutes = require('./routes/settings');
+const branchColumnsRoutes = require('./routes/branchColumns');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -89,6 +90,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', checkDatabase, authRoutes);
 app.use('/api/customers', checkDatabase, customerRoutes);
 app.use('/api/leads', checkDatabase, leadRoutes);
+app.use('/api/branch-columns', checkDatabase, branchColumnsRoutes);
 app.use('/api/distribution', checkDatabase, distributionRoutes);
 app.use('/api/analytics', checkDatabase, analyticsRoutes);
 app.use('/api/settings', checkDatabase, settingsRoutes);

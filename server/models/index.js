@@ -21,6 +21,7 @@ const LeadDistribution = require('./LeadDistribution')(sequelize);
 const LeadType = require('./LeadType')(sequelize);
 const CustomerLeadType = require('./CustomerLeadType')(sequelize);
 const DistributionRule = require('./DistributionRule')(sequelize);
+const BranchColumn = require('./BranchColumn')(sequelize);
 
 // Define associations
 User.hasMany(Customer, { foreignKey: 'userId' });
@@ -51,5 +52,6 @@ module.exports = {
   LeadDistribution,
   LeadType,
   CustomerLeadType,
-  DistributionRule
+  DistributionRule,
+  BranchColumn
 }; 

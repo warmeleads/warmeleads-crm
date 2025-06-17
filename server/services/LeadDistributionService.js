@@ -13,6 +13,7 @@ const fs = require('fs');
 const path = require('path');
 const leadMappings = require('../lead-mapping');
 const { v4: uuidv4 } = require('uuid');
+const branchColumnService = require('./BranchColumnService');
 
 class LeadDistributionService {
   constructor() {
@@ -654,6 +655,19 @@ class LeadDistributionService {
         header,
         previewRows: dataRows.slice(0, 10)
       });
+      
+      // Check of kolommen bestaan voor deze branche, maak aan als ze niet bestaan
+      let branchColumns = await branchColumnService.getColumnsForBranch(sheetBranche);
+      if (!branchColumns) {
+        // Maak standaard kolommen aan voor deze branche
+        const defaultColumns = this.getDefaultColumnsForBranch(sheetBranche);
+        branchColumns = await branchColumnService.ensureColumnsExist(sheetBranche, defaultColumns);
+        logger.importLog('Standaard kolommen aangemaakt voor branche', { 
+          branch: sheetBranche, 
+          columns: defaultColumns 
+        });
+      }
+      
       for (const rowArr of dataRows) {
         // Maak een row-object van header/rowArr
         const row = {};
@@ -685,25 +699,14 @@ class LeadDistributionService {
           });
           // Vul alleen de gemapte kolommen, geen enkele standaardwaarde voor vaste kolommen
         } else {
-          // Mapping per branche (fallback)
-          const brancheMapping = leadMappings[sheetBranche] || {};
-          Object.keys(brancheMapping).forEach(field => {
-            leadData[field] = brancheMapping[field](row);
+          // Automatische mapping gebaseerd op branch kolommen
+          branchColumns.forEach(column => {
+            // Zoek naar kolommen in de sheet die overeenkomen met de vaste kolom
+            const matchingSheetCol = this.findMatchingSheetColumn(header, column);
+            if (matchingSheetCol) {
+              leadData[column.key] = row[matchingSheetCol];
+            }
           });
-          // --- VASTE KOLOMTITELS MAPPEN VOOR THUISBATTERIJ LEADS ---
-          if ((sheetBranche || '').toLowerCase().includes('thuisbatterij')) {
-            leadData.naamKlant = leadData.naamKlant || row['Naam klant'] || row['Naam'] || row['Klantnaam'] || row['naam'] || '';
-            leadData.datumInteresse = leadData.datumInteresse || row['Datum interesse klant'] || row['Datum interesse'] || row['Datum'] || '';
-            leadData.postcode = leadData.postcode || row['Postcode'] || '';
-            leadData.plaatsnaam = leadData.plaatsnaam || row['Plaatsnaam'] || row['Plaats'] || '';
-            leadData.telefoonnummer = leadData.telefoonnummer || row['Telefoonnummer'] || row['Telefoon'] || '';
-            leadData.email = leadData.email || row['E-mail'] || row['Email'] || '';
-            leadData.zonnepanelen = leadData.zonnepanelen || row['Zonnepanelen'] || '';
-            leadData.dynamischContract = leadData.dynamischContract || row['Dynamisch contract'] || '';
-            leadData.stroomverbruik = leadData.stroomverbruik || row['Stroomverbruik'] || '';
-            leadData.budget = leadData.budget || row['Budget'] || '';
-            leadData.redenThuisbatterij = leadData.redenThuisbatterij || row['Reden Thuisbatterij'] || '';
-          }
         }
         // Mapping & defaults voor verplichte velden
         leadData.facebookLeadId = facebookLeadId;
@@ -741,6 +744,99 @@ class LeadDistributionService {
     }
     logger.info(`Importresultaat: ${totaalGeimporteerd} leads aangemaakt, ${totaalDuplicaten} duplicaten, details:`, importDetails);
     return { imported: totaalGeimporteerd, duplicates: totaalDuplicaten, details: importDetails };
+  }
+
+  /**
+   * Haal standaard kolommen op voor een branche
+   */
+  getDefaultColumnsForBranch(branch) {
+    const branchLower = branch.toLowerCase();
+    
+    if (branchLower.includes('thuisbatterij')) {
+      return [
+        { key: 'naamKlant', label: 'Naam klant', order: 1 },
+        { key: 'datumInteresse', label: 'Datum interesse klant', order: 2 },
+        { key: 'postcode', label: 'Postcode', order: 3 },
+        { key: 'plaatsnaam', label: 'Plaatsnaam', order: 4 },
+        { key: 'telefoonnummer', label: 'Telefoonnummer', order: 5 },
+        { key: 'email', label: 'E-mail', order: 6 },
+        { key: 'zonnepanelen', label: 'Zonnepanelen', order: 7 },
+        { key: 'dynamischContract', label: 'Dynamisch contract', order: 8 },
+        { key: 'stroomverbruik', label: 'Stroomverbruik', order: 9 },
+        { key: 'budget', label: 'Budget', order: 10 },
+        { key: 'redenThuisbatterij', label: 'Reden Thuisbatterij', order: 11 }
+      ];
+    } else if (branchLower.includes('airco')) {
+      return [
+        { key: 'naamKlant', label: 'Naam klant', order: 1 },
+        { key: 'datumInteresse', label: 'Datum interesse klant', order: 2 },
+        { key: 'postcode', label: 'Postcode', order: 3 },
+        { key: 'huisnummer', label: 'Huisnummer', order: 4 },
+        { key: 'plaatsnaam', label: 'Plaatsnaam', order: 5 },
+        { key: 'telefoonnummer', label: 'Telefoonnummer', order: 6 },
+        { key: 'email', label: 'E-mail', order: 7 },
+        { key: 'typeAirco', label: 'Type airco', order: 8 },
+        { key: 'koelenVerwarmen', label: 'Koelen/verwarmen?', order: 9 },
+        { key: 'hoeveelRuimtes', label: 'Hoeveel ruimtes?', order: 10 },
+        { key: 'zakelijk', label: 'Zakelijk?', order: 11 },
+        { key: 'koopOfHuur', label: 'Koop of huur?', order: 12 },
+        { key: 'boorwerkzaamheden', label: 'Boorwerkzaamheden toegestaan?', order: 13 }
+      ];
+    } else if (branchLower.includes('gz accu') || branchLower.includes('accu')) {
+      return [
+        { key: 'naamKlant', label: 'Naam klant', order: 1 },
+        { key: 'datum', label: 'Datum', order: 2 },
+        { key: 'postcode', label: 'Postcode', order: 3 },
+        { key: 'huisnummer', label: 'Huisnummer', order: 4 },
+        { key: 'plaatsnaam', label: 'Plaatsnaam', order: 5 },
+        { key: 'afstand', label: 'Afstand', order: 6 },
+        { key: 'binnenGebied', label: 'Binnen gebied?', order: 7 },
+        { key: 'verwerkt', label: 'Verwerkt?', order: 8 },
+        { key: 'geexporteerd', label: 'Geexporteerd?', order: 9 },
+        { key: 'telefoonnummer', label: 'Telefoonnummer', order: 10 },
+        { key: 'email', label: 'E-mail', order: 11 },
+        { key: 'meerDan75000', label: 'Meer dan 75.000 kWh per jaar?', order: 12 },
+        { key: 'zonnepanelen', label: 'Zonnepanelen?', order: 13 },
+        { key: 'hoeveelKwh', label: 'Hoeveel kWh opwekking?', order: 14 },
+        { key: 'redenAccu', label: 'Reden Accu', order: 15 }
+      ];
+    }
+    
+    // Standaard kolommen voor onbekende branches
+    return [
+      { key: 'naamKlant', label: 'Naam klant', order: 1 },
+      { key: 'email', label: 'E-mail', order: 2 },
+      { key: 'telefoonnummer', label: 'Telefoonnummer', order: 3 },
+      { key: 'postcode', label: 'Postcode', order: 4 },
+      { key: 'plaatsnaam', label: 'Plaatsnaam', order: 5 }
+    ];
+  }
+
+  /**
+   * Zoek naar een kolom in de sheet die overeenkomt met een vaste kolom
+   */
+  findMatchingSheetColumn(sheetHeader, column) {
+    const columnLabelLower = column.label.toLowerCase();
+    const columnKeyLower = column.key.toLowerCase();
+    
+    // Zoek exacte match
+    const exactMatch = sheetHeader.find(h => 
+      h.toLowerCase() === columnLabelLower || 
+      h.toLowerCase() === columnKeyLower
+    );
+    if (exactMatch) return exactMatch;
+    
+    // Zoek gedeeltelijke match
+    const partialMatch = sheetHeader.find(h => {
+      const hLower = h.toLowerCase();
+      return hLower.includes(columnLabelLower) || 
+             columnLabelLower.includes(hLower) ||
+             hLower.includes(columnKeyLower) ||
+             columnKeyLower.includes(hLower);
+    });
+    if (partialMatch) return partialMatch;
+    
+    return null;
   }
 }
 
