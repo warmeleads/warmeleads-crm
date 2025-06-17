@@ -20,23 +20,6 @@ module.exports = (sequelize) => {
       unique: true,
       allowNull: false
     },
-    facebookAdId: {
-      type: DataTypes.STRING,
-      unique: true,
-      allowNull: true
-    },
-    facebookCampaignId: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    firstName: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
     email: {
       type: DataTypes.STRING,
       validate: {
@@ -49,24 +32,8 @@ module.exports = (sequelize) => {
     address: {
       type: DataTypes.TEXT
     },
-    city: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
     postalCode: {
       type: DataTypes.STRING
-    },
-    country: {
-      type: DataTypes.ENUM('Netherlands', 'Belgium'),
-      allowNull: true
-    },
-    latitude: {
-      type: DataTypes.DECIMAL(10, 8),
-      allowNull: true
-    },
-    longitude: {
-      type: DataTypes.DECIMAL(11, 8),
-      allowNull: true
     },
     propertyType: {
       type: DataTypes.ENUM('house', 'apartment', 'commercial', 'other')
@@ -169,9 +136,6 @@ module.exports = (sequelize) => {
       },
       {
         fields: ['status']
-      },
-      {
-        fields: ['latitude', 'longitude']
       },
       {
         fields: ['createdAt']
