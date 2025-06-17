@@ -94,6 +94,8 @@ export default function LeadsDashboard() {
   const [logsViewer, setLogsViewer] = React.useState(false);
   const [logs, setLogs] = React.useState([]);
   const [loadingLogs, setLoadingLogs] = React.useState(false);
+  const [rawSheetData, setRawSheetData] = React.useState({ header: [], previewRows: [] });
+  const [loadingRaw, setLoadingRaw] = React.useState(false);
 
   React.useEffect(() => {
     fetchLeads();
@@ -199,6 +201,20 @@ export default function LeadsDashboard() {
 
   // Helper: detecteer mobiel
   const isMobile = window.innerWidth < 600;
+
+  // Haal ruwe sheetdata op als tabblad 'Thuisbatterij' actief is
+  React.useEffect(() => {
+    if (activeTab === 0) {
+      setLoadingRaw(true);
+      fetch(`${API_BASE}/api/leads/raw?branch=Thuisbatterij`)
+        .then(res => res.json())
+        .then(data => {
+          setRawSheetData({ header: data.header || [], previewRows: data.previewRows || [] });
+        })
+        .catch(() => setRawSheetData({ header: [], previewRows: [] }))
+        .finally(() => setLoadingRaw(false));
+    }
+  }, [activeTab]);
 
   return (
     <Box sx={{ minHeight: '100vh', background: palette.bg, p: { xs: 0.5, md: 4 } }}>
@@ -479,6 +495,40 @@ export default function LeadsDashboard() {
       {LEAD_TYPES.map((type, idx) => (
         activeTab === idx && (
           <Box key={type} sx={{ mb: 6 }}>
+            {/* Toon ruwe sheetdata-tabel voor Thuisbatterij */}
+            {type === 'Thuisbatterij' && (
+              <Paper elevation={0} sx={{ borderRadius: 4, background: '#fff', boxShadow: '0 4px 32px 0 #6366f11a', p: 0, overflow: 'hidden', mb: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: palette.accent, p: 2 }}>
+                  Geïmporteerde Thuisbatterij leads (originele sheetdata)
+                </Typography>
+                {loadingRaw ? (
+                  <Typography sx={{ p: 2 }}>Sheetdata laden...</Typography>
+                ) : rawSheetData.header.length === 0 ? (
+                  <Typography sx={{ p: 2 }}>Geen sheetdata gevonden voor Thuisbatterij.</Typography>
+                ) : (
+                  <TableContainer sx={{ background: palette.tableBg }}>
+                    <Table stickyHeader>
+                      <TableHead>
+                        <TableRow>
+                          {rawSheetData.header.map((col, i) => (
+                            <TableCell key={i} sx={{ background: palette.tableHeader, color: palette.text, fontWeight: 700 }}>{col}</TableCell>
+                          ))}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {rawSheetData.previewRows.map((row, i) => (
+                          <TableRow key={i}>
+                            {row.map((cell, j) => (
+                              <TableCell key={j}>{String(cell ?? '')}</TableCell>
+                            ))}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Paper>
+            )}
             {isMobile ? (
               <Box>
                 {groupedLeads[type].map(lead => (
