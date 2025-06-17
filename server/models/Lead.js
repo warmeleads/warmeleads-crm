@@ -22,19 +22,20 @@ module.exports = (sequelize) => {
     },
     facebookAdId: {
       type: DataTypes.STRING,
-      allowNull: false
+      unique: true,
+      allowNull: true
     },
     facebookCampaignId: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     firstName: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     lastName: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     email: {
       type: DataTypes.STRING,
@@ -50,22 +51,22 @@ module.exports = (sequelize) => {
     },
     city: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
     },
     postalCode: {
       type: DataTypes.STRING
     },
     country: {
       type: DataTypes.ENUM('Netherlands', 'Belgium'),
-      allowNull: false
+      allowNull: true
     },
     latitude: {
       type: DataTypes.DECIMAL(10, 8),
-      allowNull: false
+      allowNull: true
     },
     longitude: {
       type: DataTypes.DECIMAL(11, 8),
-      allowNull: false
+      allowNull: true
     },
     propertyType: {
       type: DataTypes.ENUM('house', 'apartment', 'commercial', 'other')
