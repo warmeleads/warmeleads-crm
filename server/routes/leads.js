@@ -329,14 +329,20 @@ router.get('/sheet', async (req, res) => {
     if (fs.existsSync(importLogsFile)) {
       logs = JSON.parse(fs.readFileSync(importLogsFile, 'utf8'));
     }
-    // Zoek de meest recente relevante logregel
+    // Zoek de meest recente relevante logregel (robuust, zonder spaties, case-insensitive)
+    const normBranch = branch.replace(/\s+/g, '').toLowerCase();
     const match = logs.reverse().find(log =>
       log.message === 'Ruwe sheetdata van tabblad geïmporteerd' &&
       log.data &&
       log.data.tabName &&
-      log.data.tabName.toLowerCase().includes(branch.toLowerCase())
+      log.data.tabName.replace(/\s+/g, '').toLowerCase().includes(normBranch)
     );
-    if (!match) return res.status(404).json({ error: 'Geen ruwe sheetdata gevonden voor deze branche' });
+    if (!match) {
+      if (logs.some(log => log.message === 'Ruwe sheetdata van tabblad geïmporteerd')) {
+        return res.status(404).json({ error: `Wel sheetdata gevonden, maar geen tabbladnaam met branche '${branch}'. Check spelling/tabbladnaam.` });
+      }
+      return res.status(404).json({ error: 'Geen ruwe sheetdata gevonden voor deze branche' });
+    }
     const header = match.data.header;
     const previewRows = match.data.previewRows;
     // Maak per rij een object { kolomnaam: waarde }
