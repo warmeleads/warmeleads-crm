@@ -690,6 +690,20 @@ class LeadDistributionService {
             leadData[field] = brancheMapping[field](row);
           });
         }
+        // --- VASTE KOLOMTITELS MAPPEN VOOR THUISBATTERIJ LEADS ---
+        if ((sheetBranche || '').toLowerCase().includes('thuisbatterij')) {
+          leadData.naamKlant = leadData.naamKlant || row['Naam klant'] || row['Naam'] || row['Klantnaam'] || row['naam'] || '';
+          leadData.datumInteresse = leadData.datumInteresse || row['Datum interesse klant'] || row['Datum interesse'] || row['Datum'] || '';
+          leadData.postcode = leadData.postcode || row['Postcode'] || '';
+          leadData.plaatsnaam = leadData.plaatsnaam || row['Plaatsnaam'] || row['Plaats'] || '';
+          leadData.telefoonnummer = leadData.telefoonnummer || row['Telefoonnummer'] || row['Telefoon'] || '';
+          leadData.email = leadData.email || row['E-mail'] || row['Email'] || '';
+          leadData.zonnepanelen = leadData.zonnepanelen || row['Zonnepanelen'] || '';
+          leadData.dynamischContract = leadData.dynamischContract || row['Dynamisch contract'] || '';
+          leadData.stroomverbruik = leadData.stroomverbruik || row['Stroomverbruik'] || '';
+          leadData.budget = leadData.budget || row['Budget'] || '';
+          leadData.redenThuisbatterij = leadData.redenThuisbatterij || row['Reden Thuisbatterij'] || '';
+        }
         // Mapping & defaults voor verplichte velden
         leadData.facebookLeadId = facebookLeadId;
         leadData.facebookAdId = row['Facebook Ad ID'] || 'unknown';

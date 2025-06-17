@@ -80,6 +80,21 @@ const LEAD_TYPE_COLUMNS = {
 
 const LEAD_TYPES = ['Thuisbatterij', 'Airco', 'GZ Accu', 'Overige'];
 
+// VASTE KOLOMTITELS voor Thuisbatterij leads
+const THUISBATTERIJ_COLUMNS = [
+  { key: 'naamKlant', label: 'Naam klant' },
+  { key: 'datumInteresse', label: 'Datum interesse klant' },
+  { key: 'postcode', label: 'Postcode' },
+  { key: 'plaatsnaam', label: 'Plaatsnaam' },
+  { key: 'telefoonnummer', label: 'Telefoonnummer' },
+  { key: 'email', label: 'E-mail' },
+  { key: 'zonnepanelen', label: 'Zonnepanelen' },
+  { key: 'dynamischContract', label: 'Dynamisch contract' },
+  { key: 'stroomverbruik', label: 'Stroomverbruik' },
+  { key: 'budget', label: 'Budget' },
+  { key: 'redenThuisbatterij', label: 'Reden Thuisbatterij' },
+];
+
 export default function LeadsDashboard() {
   const [search, setSearch] = React.useState('');
   const [filterValid, setFilterValid] = React.useState('all');
@@ -231,6 +246,60 @@ export default function LeadsDashboard() {
         .finally(() => setLoadingSheetLeads(false));
     }
   }, [activeTab]);
+
+  // Render Thuisbatterij leads tabblad
+  const renderThuisbatterijLeadsTable = () => (
+    <TableContainer component={Paper} sx={{ mt: 2 }}>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            {THUISBATTERIJ_COLUMNS.map(col => (
+              <TableCell key={col.key} sx={{ fontWeight: 700 }}>{col.label}</TableCell>
+            ))}
+            <TableCell sx={{ fontWeight: 700 }}>Acties</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {groupedLeads.Thuisbatterij.map((lead, idx) => (
+            <TableRow
+              key={lead.id || idx}
+              hover
+              sx={{ cursor: 'pointer' }}
+              onClick={() => { setSelectedLead(lead); setDrawerOpen(true); }}
+            >
+              {THUISBATTERIJ_COLUMNS.map(col => (
+                <TableCell key={col.key}>{lead[col.key] || 'Onbekend'}</TableCell>
+              ))}
+              <TableCell>
+                <IconButton size="small" onClick={e => { e.stopPropagation(); setLeadToDelete(lead); setDeleteDialogOpen(true); }}><DeleteIcon fontSize="small" /></IconButton>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  // Drawer voor lead details
+  const renderLeadDrawer = () => (
+    <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+      <Box sx={{ width: 400, p: 3 }}>
+        <Typography variant="h6" gutterBottom>Lead details</Typography>
+        {selectedLead && (
+          <>
+            {THUISBATTERIJ_COLUMNS.map(col => (
+              <Box key={col.key} sx={{ mb: 1 }}>
+                <Typography variant="subtitle2" color="text.secondary">{col.label}</Typography>
+                <Typography variant="body1">{selectedLead[col.key] || 'Onbekend'}</Typography>
+              </Box>
+            ))}
+          </>
+        )}
+        <Divider sx={{ my: 2 }} />
+        <Button variant="outlined" color="primary" onClick={() => setDrawerOpen(false)} fullWidth>Sluiten</Button>
+      </Box>
+    </Drawer>
+  );
 
   return (
     <Box sx={{ minHeight: '100vh', background: palette.bg, p: { xs: 0.5, md: 4 } }}>
@@ -596,28 +665,7 @@ export default function LeadsDashboard() {
       ))}
 
       {/* Lead details drawer */}
-      <Drawer anchor={isMobile ? "bottom" : "right"} open={drawerOpen} onClose={() => setDrawerOpen(false)} PaperProps={{ sx: { width: { xs: '100%', sm: 400, md: 480 }, height: isMobile ? '90vh' : 'auto', p: 3, background: '#f8fafc' } }}>
-        {selectedLead && (
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <Avatar {...stringAvatar(`${selectedLead.firstName} ${selectedLead.lastName}`)} sx={{ width: 48, height: 48, fontSize: 24 }} />
-              <Box>
-                <Typography variant="h5" sx={{ fontWeight: 800, color: palette.accent }}>{`${selectedLead.firstName} ${selectedLead.lastName}`}</Typography>
-                <Typography variant="body2" sx={{ color: palette.text }}>{selectedLead.email}</Typography>
-              </Box>
-            </Box>
-            <Divider sx={{ mb: 2 }} />
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Telefoon: <b>{selectedLead.phone || 'Niet opgegeven'}</b></Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Adres: <b>{selectedLead.address || 'Niet opgegeven'}</b></Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Plaats: <b>{selectedLead.city || 'Niet opgegeven'}</b></Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Postcode: <b>{selectedLead.postalCode || 'Niet opgegeven'}</b></Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Branche: <b>{selectedLead.sheetBranche}</b></Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Lead Type: <b>{selectedLead.leadTypeName}</b></Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Aangemaakt: <b>{selectedLead.createdAt ? new Date(selectedLead.createdAt).toLocaleString('nl-NL') : 'Onbekend'}</b></Typography>
-            <Typography variant="subtitle2" sx={{ color: palette.text, mb: 1 }}>Lead ID: <b>{selectedLead.id}</b></Typography>
-          </Box>
-        )}
-      </Drawer>
+      {renderLeadDrawer()}
 
       {/* Verwijder lead dialoog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
