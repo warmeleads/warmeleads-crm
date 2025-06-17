@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Button, Typography, TextField, Select, MenuItem, Checkbox, List, ListItem, ListItemText, ListItemIcon, FormControl, InputLabel, CircularProgress, Alert, Card, CardContent, FormControlLabel, Fade, Stack } from '@mui/material';
+import { Box, Button, Typography, TextField, Select, MenuItem, Checkbox, List, ListItem, ListItemText, ListItemIcon, FormControl, InputLabel, CircularProgress, Alert, Card, CardContent, FormControlLabel, Fade, Stack, useMediaQuery } from '@mui/material';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'https://warmeleads-crm.onrender.com';
 
@@ -157,6 +157,7 @@ function ImportLeads() {
   const [tabMappings, setTabMappings] = useState({});
   const [wizardIndex, setWizardIndex] = useState(0);
   const [wizardActive, setWizardActive] = useState(false);
+  const isMobile = useMediaQuery('(max-width:600px)');
 
   // Extract sheetId from URL or use as-is
   const extractSheetId = (url) => {
@@ -278,24 +279,25 @@ function ImportLeads() {
   };
 
   return (
-    <Box maxWidth={700} mx="auto" mt={4}>
-      <Typography variant="h4" fontWeight={900} mb={3} color="#6366f1">Leads importeren uit Google Sheets</Typography>
+    <Box maxWidth={700} mx="auto" mt={isMobile ? 1 : 4} px={isMobile ? 0.5 : 2}>
+      <Typography variant={isMobile ? "h5" : "h4"} fontWeight={900} mb={isMobile ? 2 : 3} color="#6366f1">Leads importeren uit Google Sheets</Typography>
       {step === 1 && (
         <Box>
-          <Typography mb={2}>Voer de Google Spreadsheet URL of ID in:</Typography>
+          <Typography mb={isMobile ? 1 : 2}>Voer de Google Spreadsheet URL of ID in:</Typography>
           <TextField
             label="Google Spreadsheet URL of ID"
             value={sheetUrl}
             onChange={e => setSheetUrl(e.target.value)}
             fullWidth
-            sx={{ mb: 2 }}
+            sx={{ mb: isMobile ? 1 : 2 }}
+            size={isMobile ? "small" : "medium"}
           />
           <Button
             variant="contained"
             color="primary"
             onClick={handleFetchTabs}
             disabled={!sheetUrl || loading}
-            sx={{ minWidth: 180 }}
+            sx={{ minWidth: isMobile ? '100%' : 180, py: 1.5, fontSize: isMobile ? 16 : 14 }}
           >
             {loading ? <CircularProgress size={24} /> : 'Tabbladen ophalen'}
           </Button>
@@ -304,8 +306,8 @@ function ImportLeads() {
       )}
       {step === 2 && !wizardActive && (
         <Box>
-          <Typography mb={2}>Selecteer branche en tabbladen om te importeren:</Typography>
-          <FormControl sx={{ mb: 2, minWidth: 220 }}>
+          <Typography mb={isMobile ? 1 : 2}>Selecteer branche en tabbladen om te importeren:</Typography>
+          <FormControl sx={{ mb: isMobile ? 1 : 2, minWidth: 220 }} size={isMobile ? "small" : "medium"}>
             <InputLabel>Branche</InputLabel>
             <Select
               value={branch}
@@ -315,66 +317,69 @@ function ImportLeads() {
               {BRANCHES.map(b => <MenuItem key={b.value} value={b.value}>{b.label}</MenuItem>)}
             </Select>
           </FormControl>
-          <Box mb={2}>
-            <Button onClick={handleSelectAll} sx={{ mr: 1 }}>Alles selecteren</Button>
-            <Button onClick={handleDeselectAll}>Alles deselecteren</Button>
+          <Box mb={isMobile ? 1 : 2} display="flex" flexDirection={isMobile ? "column" : "row"} gap={1}>
+            <Button onClick={handleSelectAll} sx={{ mr: isMobile ? 0 : 1, mb: isMobile ? 1 : 0, width: isMobile ? '100%' : 'auto' }}>Alles selecteren</Button>
+            <Button onClick={handleDeselectAll} sx={{ width: isMobile ? '100%' : 'auto' }}>Alles deselecteren</Button>
           </Box>
           <List sx={{ maxHeight: 320, overflow: 'auto', border: '1px solid #eee', borderRadius: 2 }}>
             {filteredTabs.map(tab => (
-              <ListItem key={tab.name} button onClick={() => handleToggleTab(tab.name)}>
+              <ListItem key={tab.name} button onClick={() => handleToggleTab(tab.name)} sx={{ minHeight: isMobile ? 56 : 44 }}>
                 <ListItemIcon>
                   <Checkbox
                     edge="start"
                     checked={selectedTabs.includes(tab.name)}
                     tabIndex={-1}
                     disableRipple
+                    sx={{ width: isMobile ? 32 : 24, height: isMobile ? 32 : 24 }}
                   />
                 </ListItemIcon>
                 <ListItemText
                   primary={tab.name}
                   secondary={tab.columns && tab.columns.length > 0 ? `Kolommen: ${tab.columns.join(', ')}` : ''}
+                  primaryTypographyProps={{ fontSize: isMobile ? 18 : 16 }}
                 />
               </ListItem>
             ))}
           </List>
-          <Box mt={3}>
+          <Box mt={isMobile ? 2 : 3} display="flex" flexDirection={isMobile ? "column" : "row"} gap={1}>
             <Button
               variant="contained"
               color="primary"
               onClick={handleStartMapping}
               disabled={selectedTabs.length === 0}
-              sx={{ minWidth: 180 }}
+              sx={{ minWidth: isMobile ? '100%' : 180, py: 1.5, fontSize: isMobile ? 16 : 14 }}
             >
               Volgende: Kolommen mappen
             </Button>
-            <Button sx={{ ml: 2 }} onClick={() => setStep(1)}>Terug</Button>
+            <Button sx={{ ml: isMobile ? 0 : 2, width: isMobile ? '100%' : 'auto', py: 1.5, fontSize: isMobile ? 16 : 14 }} onClick={() => setStep(1)}>Terug</Button>
           </Box>
         </Box>
       )}
       {step === 2 && wizardActive && filteredTabs[wizardIndex] && (
         <Fade in timeout={500}>
           <Box>
-            <Typography variant="h5" sx={{ mb: 2, fontWeight: 700, color: '#06b6d4' }}>Tabblad {wizardIndex + 1} van {filteredTabs.length}: <b>{filteredTabs[wizardIndex].name}</b></Typography>
-            <Card elevation={3} sx={{ borderRadius: 4, mb: 2 }}>
+            <Typography variant={isMobile ? "h6" : "h5"} sx={{ mb: isMobile ? 1 : 2, fontWeight: 700, color: '#06b6d4' }}>Tabblad {wizardIndex + 1} van {filteredTabs.length}: <b>{filteredTabs[wizardIndex].name}</b></Typography>
+            <Card elevation={3} sx={{ borderRadius: 4, mb: isMobile ? 1 : 2 }}>
               <CardContent>
                 {filteredTabs[wizardIndex].columns.length === 0 && <Typography color="text.secondary">Geen kolommen gevonden.</Typography>}
                 {filteredTabs[wizardIndex].columns.map(col => (
-                  <Box key={col} sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Box key={col} sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1, flexDirection: isMobile ? 'column' : 'row' }}>
                     <FormControlLabel
                       control={
                         <Checkbox
                           checked={tabMappings[filteredTabs[wizardIndex].name]?.[col]?.enabled || false}
                           onChange={e => handleMappingChange(filteredTabs[wizardIndex].name, col, 'enabled', e.target.checked)}
+                          sx={{ width: isMobile ? 32 : 24, height: isMobile ? 32 : 24 }}
                         />
                       }
-                      label={col}
+                      label={<span style={{ fontSize: isMobile ? 18 : 16 }}>{col}</span>}
                     />
                     <Select
-                      size="small"
+                      size={isMobile ? "medium" : "small"}
                       value={tabMappings[filteredTabs[wizardIndex].name]?.[col]?.mappedTo || ''}
                       onChange={e => handleMappingChange(filteredTabs[wizardIndex].name, col, 'mappedTo', e.target.value)}
                       displayEmpty
-                      sx={{ minWidth: 160 }}
+                      sx={{ minWidth: isMobile ? 200 : 160 }}
                     >
                       <MenuItem value=""><em>Niet mappen</em></MenuItem>
                       {(branchLeadFields[getBranchFromTab(filteredTabs[wizardIndex].name)] || []).map(f => (
@@ -385,14 +390,14 @@ function ImportLeads() {
                 ))}
               </CardContent>
             </Card>
-            <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-              <Button variant="contained" color="primary" onClick={handleImportTab} disabled={importing}>
+            <Stack direction={isMobile ? "column" : "row"} spacing={2} sx={{ mt: isMobile ? 1 : 2 }}>
+              <Button variant="contained" color="primary" onClick={handleImportTab} disabled={importing} sx={{ py: 1.5, fontSize: isMobile ? 16 : 14 }}>
                 {importing ? 'Importeren...' : 'Importeer dit tabblad'}
               </Button>
-              <Button variant="outlined" onClick={handlePrev} disabled={wizardIndex === 0 || importing}>
+              <Button variant="outlined" onClick={handlePrev} disabled={wizardIndex === 0 || importing} sx={{ py: 1.5, fontSize: isMobile ? 16 : 14 }}>
                 Vorige
               </Button>
-              <Button variant="text" color="error" onClick={() => setWizardActive(false)} disabled={importing}>
+              <Button variant="text" color="error" onClick={() => setWizardActive(false)} disabled={importing} sx={{ py: 1.5, fontSize: isMobile ? 16 : 14 }}>
                 Stoppen
               </Button>
             </Stack>
@@ -408,7 +413,7 @@ function ImportLeads() {
                 : `Fout: ${importResult.error}`}
             </Alert>
           )}
-          <Button variant="contained" sx={{ mt: 2 }} onClick={() => setStep(1)}>Opnieuw starten</Button>
+          <Button variant="contained" sx={{ mt: 2, width: isMobile ? '100%' : 'auto', py: 1.5, fontSize: isMobile ? 16 : 14 }} onClick={() => setStep(1)}>Opnieuw starten</Button>
         </Box>
       )}
     </Box>
